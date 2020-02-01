@@ -1,0 +1,207 @@
+---
+title: "Matrix Operations in R"
+output: html_notebook
+---
+
+This notebook demonstrates how to do various matrix operations and matrix computations using R. 
+
+In R, a matrix is defined as follows:
+```{r}
+A <- matrix(c(-1,0,2,-3,1,4),2,3,byrow = TRUE)
+```
+
+Let's look at the result:
+```{r}
+A
+```
+
+Observe,
+
+  1) The entries of the matrix are provided by listing them with the concatenate function c()
+  
+  2) It is necessary to input the number of rows and number of columns
+  
+  3) If we want to matrix entries to be placed by row we must set byrow = TRUE
+  
+Once we have defined a matrix, the individual elements of the matrix are accessed as
+```{r}
+A[1,2]
+```
+
+or
+
+```{r}
+A[2,1]
+```
+and so on. 
+
+R has a function the is designed to tell us the size or shape of a matrix:
+```{r}
+dim(A)
+```
+
+
+R makes it very easy to find the transpose of a matrix:
+```{r}
+t(A)
+```
+
+Let's look at how matrix multiplication works in R. 
+
+Define a second matrix $B$ that we can multiply by $A$. 
+```{r}
+B <- matrix(c(1,3,-6,2,-1,0,1,-2,4,-2,7,-9,8,1,-3),3,5,byrow = TRUE)
+```
+
+Let's check the size of $B$ and then look at it. 
+```{r}
+dim(B)
+```
+
+```{r}
+B
+```
+
+Notice that since $A$ is $2 \times 3$ and $B$ is $3 \times 5$ the product $AB$ is allowed and we expect the result to be a $2 \times 5$ matrix. We compute it as
+```{r}
+A %*% B
+```
+
+Let's use R to confirm the matrix identity $(AB)^{T} = B^T A^T$. 
+
+```{r}
+t(A %*% B)
+```
+
+```{r}
+t(B) %*% t(A)
+```
+
+
+Now let's look at what we get when we compute $AA^T$ and $A^T A$.
+```{r}
+A %*% t(A)
+```
+
+
+
+```{r}
+t(A) %*% A
+```
+
+
+Let's look at what happens if we create a matrix **without** setting byrow=TRUE:
+```{r}
+matrix(c(-1,0,2,-3,1,4),2,3)
+```
+
+This is sometimes conveniet say for example in order to create a column vector. 
+```{r}
+x <- matrix(c(-1,0,1),ncol=1)
+```
+
+```{r}
+dim(x)
+```
+
+```{r}
+x
+```
+
+
+Let's create another column vector with the same length as that of $x$. 
+```{r}
+y <- matrix(c(4,1,2),ncol = 1)
+```
+
+```{r}
+y
+```
+
+Now we will compute $x^T y$
+```{r}
+t(x) %*% y
+```
+
+and also $x y^T$
+```{r}
+x %*% t(y)
+```
+
+
+There are simple functions that can be used to compute the determinant and inverse of a square matrix. 
+
+```{r}
+C <- matrix(c(-1,2,5,-1,0,2,2,1,-2),3,3,byrow = T)
+```
+
+```{r}
+C
+```
+
+```{r}
+det(C)
+```
+
+```{r}
+solve(C)
+```
+
+
+Let's check that this is indeed the inverse to $C$.
+```{r}
+C_inv <- solve(C)
+```
+
+```{r}
+C_inv %*% C
+```
+
+
+```{r}
+C %*% C_inv
+```
+
+What do you observe about this? Let's see what happens if we round the result:
+```{r}
+round(C %*% C_inv,5)
+```
+
+Matrix addition is even easier to do than matrix multiplication:
+```{r}
+A <- matrix(c(1,2,3,4,5,6),2,3)
+B <- matrix(c(2,3,4,5,6,7),2,3)
+A + B
+```
+
+
+Finally, R can be used to solve systems of linear equations. 
+
+Suppose we want to solve 
+
+$-2x + 3y + z = 4$
+$-x + 2y - z = -2$
+$5x -2y + 3x = 8$
+
+```{r}
+A <- matrix(c(-2,3,1,-1,2,-1,5,-2,3),3,3,byrow = T)
+b <- matrix(c(4,-2,8),ncol=1)
+x <- solve(A,b)
+```
+
+Let's look at and then check the solution:
+```{r}
+x
+```
+
+```{r}
+A %*% x
+```
+
+```{r}
+b
+```
+
+
+
+
