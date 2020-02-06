@@ -1,0 +1,115 @@
+---
+title: "Plotting Multivariable Functions in R"
+output: html_notebook
+---
+
+# Introduction
+
+This notebook will use the function plotFun from the mosaic package. If necessary, being by installing the mosaic package. Next, load the mosaic package with the command
+```{r,message=FALSE,warning=FALSE}
+library(mosaic)
+```
+
+We will introduce the functionality of plotFun by plotting some single-variable functions familiar from calulus I and II. Then, we will use the same function to plot some functions of two variable beginning with two-variable linear functions. 
+
+# Quick Review of Single Variable Plots
+
+Let's plot the linear function $y=-2x + 4$ in R using plotFun:
+```{r}
+plotFun(-2*x+4~x,x.lim=range(-3,5))
+```
+
+Let's plot $f(x) = -2x^2 + 6x - 3$:
+```{r}
+plotFun(-2*x^2+6*x - 3~x,x.lim=range(-3,7))
+```
+
+It's not a very big adjustment to obtain a graph for a function of two variables. We will demonstrate this initially with two variable linear graphs which as discussed are planes in three-dimensional space. 
+
+# Two-variable Linear Functions. 
+
+Recall that a two-variable linear function has the form
+
+$F(x_{1},x_{2}) = m_{1}x_{1} + m_{2}x_{2} + b$
+
+Let's look at the example from the notes:
+
+$F(x_{1},x_{2}) = -2x_{1} + 3x_{2} + 1$
+
+```{r}
+plotFun(-2*x + 3*y + 1 ~ x & y,x.lim=range(-4,4),y.lim=range(-4,4),surface = TRUE)
+```
+
+If we run this command in the console rather than in a notebook, we are able to manipulate the plot. Let's try this. 
+
+What happens if we do not include the optional argument surface=TRUE? Let's investigate this.
+```{r}
+plotFun(-2*x + 3*y + 1 ~ x & y,x.lim=range(-4,4),y.lim=range(-4,4))
+```
+
+In order to see the results it is necessary to run this command in the console. 
+
+We get what is known as a contour plot. Such a plot shows the curves (which in this case are lines) of constant elevation. 
+
+Let's look at another example. Consider the linear two-variable function $F(x_{1},x_{2}) = 5x_{1} - 3x_{2} - 2$. We start by turning this into an R function which is not necessary but will be useful for the pruposes of illustrating certain points. 
+```{r}
+F <- makeFun(5*x - 3*y - 2 ~ x & y)
+```
+
+Now let's plot the corresponding plane:
+```{r}
+plotFun(F(x,y)~x&y,x.lim = range(-2,2),y.lim=range(-3,3),surface = TRUE)
+```
+
+Let's plot this with $y$ held fixed at some different values:
+```{r}
+plotFun(F(x,0)~x,x.lim = range(-2,2))
+```
+
+Now do the same thing for several values of fixed $x$.
+```{r}
+plotFun(F(0,y)~y,y.lim=range(-3,3))
+```
+
+
+Let's make a contour plot for this function by pasting the following command into the console. 
+```{r}
+plotFun(F(x,y)~x&y,x.lim = range(-2,2),y.lim=range(-3,3))
+```
+
+# More General Two-variable Functions. 
+
+Consider the following function:
+
+$F(x_{1},x_{2}) = 2x_{1}^2 + 4x_{2}^{2} + 7$
+
+For each pair of points $(x_{1},x_{2})$ we can interpret the corresponding number $x_{3}=F(x_{1},x_{2})$ as a height above (if the height is positive) or below (if the height is negative) the $x_{1}x_{2}$-plane. Just as with two-variable linear functions, the surface that this prodices will not necessarily be a plane. **Why?** Consider what happens if we fix a value of say $x_{2}$. As an example, let's set $x_{2}=0$, then $F(x_{1},0)=2x_{1}^{2}+7$ which is a quadratic function with a graph that is a parabola. Somehting similar happens for any other fixed value of $x_{2}$. Likewise, if we fix a value of $x_{1}$ we obtain a function of $x_{2}$ that is nonlinear. 
+
+We can easily use plotFun to graph the surface corresponding to the graph of $F(x_{1},x_{2}) = 2x_{1}^2 + 4x_{2}^{2} + 7$. First we create an R function corresponding to two-variable function currently under consideration.  
+```{r}
+F <- makeFun(2*x^2+4*y^2+7 ~ x & y)
+```
+
+Now we will plot the surface
+```{r}
+plotFun(F(x,y)~x&y,x.lim=range(-2,2),y.lim=range(-2,2),surface=TRUE)
+```
+
+Let's look at some cross-sections:
+First with fixed values for $x_{2}$:
+```{r}
+plotFun(F(x,0)~x,x.lim=range(-2,2))
+```
+
+Now with fixed values for $x_{1}$:
+```{r}
+plotFun(F(0,y)~y,y.lim=range(-2,2))
+```
+
+
+Finally, let's paste the following command into the console to get a contour plot. 
+```{r}
+plotFun(F(x,y)~x&y,x.lim=range(-2,2),y.lim=range(-2,2))
+```
+
+**Question:** Why does the contour plot look the way it does? Compare and contrast the contour plot of this function with the contour plot of a two-variable linear function. 
