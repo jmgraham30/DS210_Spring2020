@@ -113,3 +113,9 @@ plotFun(F(x,y)~x&y,x.lim=range(-2,2),y.lim=range(-2,2))
 ```
 
 **Question:** Why does the contour plot look the way it does? Compare and contrast the contour plot of this function with the contour plot of a two-variable linear function. 
+
+**Question** Consider the contour plot generated with the following code:
+```{r}
+plotFun(4*x^2 - 9*y^2 + 6 ~ x & y,x.lim=range(-5,5),y.lim=range(-5,5))
+```
+What do you think is the shape of the surface based on the contour plot? 
