@@ -5,11 +5,16 @@ output:
   html_notebook: default
 ---
 
+```{r,warning=FALSE,message=FALSE}
+library(tidyverse)
+library(fastR2)
+```
+
 # Introduction
 
-In this notebook, we will use a combination of logic, experiment, and computing to get an overview of (almost) all of the concepts that will be covered in more detail as the course progresses. That is, we are going to get a glimpse of the main ideas of both probability and statistics (statistical inference). 
+In this notebook, we will use a combination of logic, experiment, and computing to get an overview of (almost) all of the concepts from probability and statistics that will we cover in more detail as the course progresses. That is, we are going to get a glimpse of the main ideas of both probability and statistics (statistical inference). 
 
-As you can tell from the tite of the course, this class is about probability and statistics. From Wikipedia:
+Data science and machine learning rely heavily on both probability and statistics. The following articles from Wikipedia are worth skimming:
 
 * [Probability](https://en.wikipedia.org/wiki/Probability) is the measure of the likelihood that an event will occur.
 
@@ -19,23 +24,26 @@ As you can tell from the tite of the course, this class is about probability and
 
 One of the main takeaways that I would like for you to get from this introduction is that statistics (statistical inference) relies on probability. Thus, it is not really possible to understand statistics without probabilty. 
 
-This loads some R functions that we will use in some of our computations. 
-```{r,warning=FALSE,message=FALSE}
-library(tidyverse)
-library(fastR2)
-```
-
 # Coin Flipping and a Probability Model 
 
-![ ](Images/quarter.jpg){width=50%}
+**Question:** If you flip a quarter, what are the chances that the coin lands with the "heads" side facing up? 
 
-Consider the flip of a *fair*, two-sided coin. Flipping the coin is an example of an (random) **experiment**. Suppose that we call one side of the coin heads and the other tails. After flipping the coin, the (only) possible **outcomes** are heads ($H$) or tails ($T$). Then we say that the "**sample space**" for the coin flipping experiment is $\Omega=\{H,T\}$. For reasons that you will see later, we call the subsets of the sample space $\Omega$ the **events** of the experiment. Thus the events corresponding to the coin flipping sample space $\Omega$ are $\emptyset$, $\{H\}$, $\{T\}$, and $\{H,T\}=\Omega$. (Recall that a set with $n$ elements has $2^{n}$ possible subsets.)
+![ ](quarter.jpg){width=50%}
 
-By a fair coin we mean that the chances of the coin landing on heads when flipped is the same as it landing on tails. Thus, it is commonly said that the coin has a 50\% chance of turning up a head (and also a 50\% chance of turning up a tail). Another way to say this is that the probability of landing a heads is 1/2 (so the probability of landing a tails is also 1/2). In notation, $P(\{H\}) = \frac{1}{2}$ and $P(\{T\})=\frac{1}{2}$.
-(For technical reasons we also write that $P(\emptyset)=0$, and $P(\Omega)=1$).
+Consider the flip of a *fair*, two-sided coin. Flipping the coin is an example of an (random) **experiment**. Suppose that we call one side of the coin heads and the other tails. After flipping the coin, the (only) possible **outcomes** are heads ($H$) or tails ($T$). In this case, we say that the "**sample space**" (set of all possible outcomes) for the coin flipping experiment is $\Omega=\{H,T\}$. For reasons that you will see later, we call the subsets of the sample space $\Omega$ the **events** of the experiment. Thus the events corresponding to the coin flipping sample space $\Omega$ are $\emptyset$, $\{H\}$, $\{T\}$, and $\{H,T\}=\Omega$. (Recall that a set with $n$ elements has $2^{n}$ possible subsets.) 
+
+We call each run an experiment (*e.g.*, flip a coin) a **trial**.  
 
 
-We can convert the coin flipping experiment into a mathematical function $X:\Omega \rightarrow \{0,1\}$. Define $X(H) = 1$, and $X(T) = 0$. That is, we are simply counting the number of heads after one flip of a coin. A function like this is called a **random variable**. Since we are now working with numerical values, we can exploit this to develop a mathematical model for coin flipping, since the probability that the random variable $X$ will equal 1 is $\frac{1}{2}$ and the probability that $X$ will equal 0 is also $\frac{1}{2}$. That is, 
+By a fair coin, we mean that the chances of the coin landing with heads facing up when flipped is the same as it landing with tails facing up. Thus, it is commonly said that the coin has a 50\% chance of turning up heads (and also a 50\% chance of turning up tails). 
+
+Another way to say this is that the probability that the coin lands heads up is 1/2 (so the probability of landing a tails is also 1/2). In notation, $P(\{H\}) = \frac{1}{2}$ and $P(\{T\})=\frac{1}{2}$.
+(For technical reasons we also write that $P(\emptyset)=0$, and $P(\Omega)=1$). We will always take probability values to be nonnegative numbers less than or equal to 1. 
+
+Our goal is to construct a robust mathematical model (*i.e.*, a probability model) for the coin tossing experiment (and more generally any random experiment). One initial annoyance is that our outcomes are described by the elements of the set $\Omega$  and these are not numerical quantities which are much easier to work with in practice (especially on a computer). There is a very powerful idea that will allow us to convert general questions about probabilities into statments about numberical quantities. 
+
+
+For example, we can convert the coin flipping experiment into a mathematical function $X:\Omega \rightarrow \{0,1\}$ that takes on numerical values by defining $X(H) = 1$, and $X(T) = 0$. That is, we are simply counting the number of heads after one flip of a coin. A function like this is called a **random variable**. Since we are now working with numerical values, we can exploit this to develop a mathematical model for coin flipping, since the probability that the random variable $X$ will equal 1 is $\frac{1}{2}$ and the probability that $X$ will equal 0 is also $\frac{1}{2}$. That is, 
 
 $P(X=1) = \frac{1}{2}$, and $P(X=0) = \frac{1}{2}$
 
