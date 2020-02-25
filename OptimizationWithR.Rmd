@@ -1,0 +1,141 @@
+---
+title: "Introduction to Optimization Using R"
+output: html_notebook
+---
+
+```{r,warning=FALSE,message=FALSE,echo=FALSE}
+library(mosaic)
+library(nleqslv)
+```
+
+Suppose that we want to find and classify all of the critical points for the function
+
+$F(x_{1},x_{2}) = 10x_{1}^{2}x_{2} - 5x_{1}^{2} - 4x_{2}^{2} - x_{1}^{4} - 2x_{2}^{4}$.
+
+A good place to begin is with a graph of the function. It is useful to examine both a surface plot and a contour plot.
+
+```{r}
+F_exp <- makeFun(10*x^2*y-5*x^2-4*y^2-x^4-2*y^4~x&y)
+```
+
+```{r}
+plotFun(F_exp(x,y)~x&y,x.lim=range(-3,3),y.lim=range(-3,3))
+```
+
+```{r}
+plotFun(F_exp(x,y)~x&y,x.lim=range(-3,3),y.lim=range(-3,3),surface = T)
+```
+
+These plots can be used to help us see approximately where to look for critical points. 
+
+To find the critical points we must compute the first partial derivatives and then solve the system of equations satisfied when setting all of the first partial derivatives equal to zero. We can easily find that
+
+$\frac{\partial F}{\partial x_{1}} = 20x_{1}x_{2} - 10x_{1} - 4x_{1}^{3}$
+
+$\frac{\partial F}{\partial x_{2}} = 10x_{1}^{2} - 8x_{2} - 8x_{2}^{3}$
+
+Now we must find all solutions to 
+
+$20x_{1}x_{2} - 10x_{1} - 4x_{1}^{3}=0$
+
+$10x_{1}^{2} - 8x_{2} - 8x_{2}^{3}=0$
+
+Let's see how to find approximate solutions to this system of nonlinear equations using R. We will begin by defining R functions that represent the function $F$ and the partial derivatives $\frac{\partial F}{\partial x_{1}}$ and $\frac{\partial F}{\partial x_{2}}$. 
+
+An R function representing $F$:
+```{r}
+My_F <- function(x){
+  y <- numeric(1)
+  y <- 10*x[1]^2*x[2] - 5*x[1]^2 - 4*x[2]^2 - x[1]^4 - 2*x[2]^4
+  y
+}
+```
+
+An R function representing $\frac{\partial F}{\partial x_{1}}$ and $\frac{\partial F}{\partial x_{2}}$:
+```{r}
+My_DF <- function(x){
+  dy <- numeric(2)
+  dy[1] <- 20*x[1]*x[2] - 10*x[1] - 4*x[1]^3
+  dy[2] <- 10*x[1]^2 - 8*x[2] - 8*x[2]^3
+  dy
+}
+```
+
+Now, in order to use R to approximate solutions to 
+
+$20x_{1}x_{2} - 10x_{1} - 4x_{1}^{3}=0$
+
+$10x_{1}^{2} - 8x_{2} - 8x_{2}^{3}=0$
+
+we must feed values for initial guesses into the nonlinear equation solver. The way we will do this is by using the graph we created earlier:
+```{r}
+xstart <- matrix(c(0,0,-3,2,3,2,1,1,-1,1),ncol=2,byrow = T)
+```
+Here is what we have created:
+```{r}
+xstart
+```
+
+Now we will call the nonlinear solver:
+```{r}
+ans <- searchZeros(xstart,My_DF)
+```
+
+Let's look at the values this function produces as approximate critical points:
+```{r}
+ans$x
+```
+
+**Important note:** When we seek numerical solutions to systems of equations there is no guarantee that the numerical method will be able to find all of the solutions. 
+
+**Exercise:** For the points returned by the searchZeros function, go back to the graph we made earlier and examine what the function looks like near to these values. 
+
+Now we will use the optim function to try to find the extreme values for the function. There are two aspects to using optim that we shoudl be mindful of:
+
+1) The optim function seeks local minimum values for $F$ so if we want maximum values we need to look for the minimum values of $-F$. 
+
+2) Which local extreme value we find will depend heavily on our initial guess for the location of the extreme values.
+
+Here is how the optim function works:
+```{r}
+extreme_vals <- optim(ans$x[1, ],function(x) -My_F(x))
+```
+Let's look at the output:
+
+This command tells us the location of the extreme value 
+```{r}
+extreme_vals$par
+```
+
+
+while this command tells us the corresponding value of the function:
+```{r}
+extreme_vals$value
+```
+
+What this tells us is that we should expect that there is a local maximum value for $F$ of about 8.5 which occurs very close to $(-2.64,1.9)$. (Again, we change the sign because optim searches for minimum values by default). 
+
+**Question:** Why do you think that this particular local extrema is the one that was found? 
+
+It turns out that this function does not have any local minima but has three local maxima and two saddle-points. Let's find another local minimum. 
+
+```{r}
+extreme_vals <- optim(ans$x[3, ],function(x) -My_F(x))
+```
+
+```{r}
+(extreme_vals$par)
+(extreme_vals$value)
+```
+
+Let's try to confirm that there is a local max value of 0 at $(0,0)$ by plotting the graph of the function very close to this point:
+
+```{r}
+plotFun(F_exp(x,y)~x&y,x.lim=range(-0.3,0.3),y.lim=range(-0.3,0.3),surface = T)
+```
+
+**Exercise:** Use a plot to show that there is in fact a saddle-point near $(-0.86,0.65)$.
+
+There are a host of subtle issue with numerical optimization and numerical solutions of systems of equations. These topics are beyond the scope of this course but such methods are use very frequently in data science and machine learning. Thus, it is woth your time to get at least some exposure to numerical optimization and numerical solutions to systems of equations. 
+
+
