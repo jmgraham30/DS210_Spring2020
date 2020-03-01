@@ -3,6 +3,8 @@ title: "Introduction to Probability and Statistics"
 output:
   pdf_document: default
   html_notebook: default
+  html_document:
+    df_print: paged
 ---
 
 ```{r,warning=FALSE,message=FALSE,echo=FALSE}
@@ -180,18 +182,30 @@ Now an actual experiment:
 Everyone flip a quarter 20 times and report the number of heads that you get. We can record the results. (Why is flipping 12 quarters 20 times each equivalent to flipping 1 quarter 240 times?) 
 ```{r}
 n_trials <- 240
-n_heads <- 135
+n_heads <- 122
 n_tails <- (n_trials-n_heads)
 df <- data.frame(flips=c(rep(0,n_tails),rep(1,n_heads)))
 df %>% ggplot(aes(x=flips)) + geom_bar()
 ```
 
+Let's compute the proportion of heads out of the total number of trials:
 ```{r}
-n_heads/n_trials
+(test_prop <- n_heads/n_trials)
+```
+**Question:** Are you surprised by this result? Why or why not? 
+
+Note that the proportion $p_{\text{heads}} = \frac{n_{\text{heads}}}{n_{\text{trials}}}$ of heads out of $n_{\text{trials}}$ tosses of a coin is an example of a **statistic**. In general, a statistic is a function that takes the data as an input and returns a real number. Typically this number will provide some kind of useful summary of the data. The value `r test_prop` is what we call an **observed** or a **sample** value for our statistic. The reason for this is, if we were to repeat the experiment of flipping a coin `r n_trials` times, each time we conducted this expriment we would likely observe a different value for our statistic $p_{\text{heads}} = \frac{n_{\text{heads}}}{n_{\text{trials}}}$.     
+
+**Question:** A typical question in probability and statistics is, what is the distribution for a statistic like $p_{\text{heads}} = \frac{n_{\text{heads}}}{n_{\text{trials}}}$ when the experiment is repeated a very large number of times? Such a distribution is called a sampling distribution for the statistic. We can perform a simulation to get  sense of what is the sampling distribution for the proportion $p_{\text{heads}} = \frac{n_{\text{heads}}}{n_{\text{trials}}}$. 
+
+```{r}
+N <- 5000
+result <- do(N)*c(p_heads = sum(rbinom(n_trials,1,0.5))/n_trials)
+result %>% gf_histogram(~p_heads)
 ```
 
 
-What is the probability of this data (assuming that the coin is fair)? 
+Let's return to the data from our experiment. What is the probability of getting `r n_heads` number of heads out of `r n_trials` tosses of a coin (assuming that the coin is fair)? 
 ```{r}
 dbinom(n_heads,size=240,prob=0.5)
 ```
@@ -202,8 +216,6 @@ Let's look at the mass function for the case of $n=240$:
 gf_dist("binom",params=list(size=n_trials,prob=0.5),kind="density")
 ```
 
-
-This shows the (theoretical) **sampling distribution** for the probability of getting $x$ heads out of $n$ trials. 
 
 Based on this, is the probability of getting $n_{\text{heads}}$ heads out of $n_{\text{trials}}$ flips high or low? The distribution function may also be useful to look at:
 ```{r}
@@ -253,7 +265,7 @@ Assuming that the coin(s) is (are) fair, what is the probability of getting a re
 Note that we multiply by two because this is a symmetric distribution and we want to conduct a **two-sided** test. 
 
 
-What this says is that under the null hypothesis ($q=\frac{1}{2}$) about `r round(p,2)`\% of the time we expect to get a result that is at least as extreme as getting $n_{\text{heads}}$ heads. While this probability is not high, it is also not extremely low. Thus, we fail to reject the null hypothesis. 
+What this says is that under the null hypothesis ($q=\frac{1}{2}$) about `r round(p,2)` \% of the time we expect to get a result that is at least as extreme as getting $n_{\text{heads}}$ heads. While this probability is not high, it is also not extremely low. Thus, we fail to reject the null hypothesis. 
 
 R will do all of this "hypothesis testing" for us automatically: 
 ```{r}
