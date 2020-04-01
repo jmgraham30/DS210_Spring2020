@@ -1,0 +1,264 @@
+---
+title: "Binomial and Normal Distributions in R"
+output: html_notebook
+---
+
+```{r,message=FALSE,warning=FALSE}
+library(fastR2)
+```
+
+# Introduction 
+
+In Written Notes 15 and Video Lecture 8 we introduced binomial and normal distributions as very iportant examples of a discrete and continuous distribution respectively. In this notebook, we will see how to use R to 
+
+1) visualize these distributions,
+
+2) compute probabilities with the R implementation of the cdf's, pmf's and pdf's for these distributions, and
+
+3) see how to draw random samples from a random variable that has either a binomial or normal distribution. 
+
+# Binomial Distribution
+
+In R, the functions dbinom and pbinom implement the pmf's (dbinom) and cdf's (pbinom) for binomial distributions. Let's examine the help documentation for these functions:
+```{r}
+?dbinom
+```
+
+From the help page, we see that, for example, the function dbinom requires three input values, x, size (which is the parameter n or number of trials), and p (which is the parameter $\rho$ or probability of success). As an example to illustrate this, suppose that we want to compute the probability of get three heads after flipping a fair coin eight times, then we would compute
+```{r}
+dbinom(3,8,0.5)
+```
+
+**Exercise:** Recall the the probability of getting $k$ heads after tossing a fair coin eight times should be
+
+$p(k) = \left(\begin{array}{c}8 \\ k  \end{array} \right) \left(\frac{1}{2} \right)^{k} \left(1 - \frac{1}{2} \right)^{8-k}$. Compute $p(3)$ and confirm that your answer is the same value returned by R in the previous command. 
+
+Suppose instead that we want the probability of tossing less than or equal to three heads out of a total of eight coin tosses. This can becomputed using a cdf:
+```{r}
+pbinom(3,8,0.5)
+```
+
+Note that this is the same as
+```{r}
+dbinom(0,8,0.5) + dbinom(1,8,0.5) + dbinom(2,8,0.5) + dbinom(3,8,0.5)
+```
+
+**Remark:** The reason for this is the relation between the cdf and pmf of a discrete random vairable, namely that
+
+$P(X \leq x) = \sum_{\text{all}\  k \leq x}p(k)$.
+
+Many of the functions in R are vectorized, meaning that if we input an array (vector) then R will compute the value for each term in the array and return an array of values. For example, 
+```{r}
+dbinom(0:3,8,0.5)
+```
+
+**Exercise:** Explain the meaning of the output from this code:
+```{r}
+sum(dbinom(0:3,8,0.5))
+```
+
+Recall that a pmf should satisfy 
+
+$\sum_{\text{all}\ k}p(k) = 1$.
+
+We can demonstrate this fact for a specific example of the binomial distribution. Consider the binomial distribution with number of trials $n=25$ and probability of success $\rho = 0.3$, then
+```{r}
+sum(dbinom(0:25,25,0.3))
+```
+
+The previous command simply adds up all of the values returned by this command:
+```{r}
+dbinom(0:25,25,0.3)
+```
+
+Let's use R to solve one of the examples given in Written Notes 15 and Video Lecture 8:
+**Example:** What is the probability of rolling a fair six-sided die five times and getting two sixes? Recall that to solve this problem we use a binomial distribution with the number of trials $n=5$ and the probability of success $\rho = \frac{1}{6}$. Then we can compute the probability value with
+```{r}
+dbinom(2,5,1/6)
+```
+
+Instead, what if we want to compute the probability of rolling less than or equal to three sixes? This is easy, just use the cdf:
+```{r}
+pbinom(3,5,1/6)
+```
+
+What if we want to compute the probability of rolling more than 2 sixes? That is, if $X$ is the random variable that returns the number of sixes rolled after rolling a die five times, then we want $P(X > 2)$. First recall that $P(X > x) = 1 - P(X \leq x) = 1 - F(x)$, where $F$ is the cdf. Then the answer to our question is given by
+```{r}
+1 - pbinom(2,5,1/6)
+```
+
+### Visualizing Binomial Distributions
+
+Here is an easy way to plot the pmf of a binomial distribution:
+```{r}
+# pmf with n=10, rho = 1/2
+gf_dist("binom",params=list(size=10,prob=0.5))
+```
+this shows the probability mass function 
+
+$p(k) = \left(\begin{array}{c}10 \\ k  \end{array} \right) \left(\frac{1}{2} \right)^{k} \left(1 - \frac{1}{2} \right)^{10-k}$. 
+
+If you want the cumulative distribution function instead, simply use:
+```{r}
+# cdf with n=10, rho = 1/2
+gf_dist("binom",params=list(size=10,prob=0.5),kind="cdf")
+```
+
+**Exercise** Plot the pmf and cdf for a binomial distribution with number of trials $n=25$ and probability of success $\rho = \frac{3}{4}$. 
+
+### More Computations with Binomial Distributions
+
+**Example:** As another example of computing with the binomial distribution, suppose that we want to compute the probability of getting more than 2 sixes and less then or equal to 7 sixes after rolling a fair die twelve times. If $X$ is the random variable the counts the number of sixes after twelve rolls of a fair six-sided die, then $P(2 < X \leq 7)$ is what we want to compute. By the theory we have developed, this is the same as $F(7) - F(2)$, where $F$ is the appropriate cdf. In R:
+```{r}
+pbinom(7,12,1/6) - pbinom(2,12,1/6)
+```
+
+For a discrete random variable with pmf $p$ adn cdf $F$, we have that
+
+$\sum_{\text{all}\ a<k\leq b} p(k) = F(b) - F(a)$.
+
+**Exercise:** Explain the meaning of the output from this command:
+```{r}
+sum(dbinom(3:7,12,1/6))
+```
+
+### Random Number Generation from a Binomial Distribution
+
+The R function rbinom produces a random number from a binomial distribution. For example, suppose we want to simulate tossing a fair coin 13 times. This can be done with
+```{r}
+rbinom(1,13,1/2)
+```
+Note that each time we run this code we get a different value that is a number from 0 to 13. 
+
+In what sense is this sampling from a binomial distribution? Let's see what we get if we simulate repeating twenty trials of the experiment of tossing a fair coin 13 times:
+```{r}
+rbinom(20,13,1/2)
+```
+
+The point is that the frequency that each number appears should roughly follow that of the frequencies for the various number of heads of a binomial random variable with number of trials $n=13$ and probability of success $\rho=\frac{1}{2}$. 
+
+One way to demonstrate this visually is to compute the plot of the pmf of the random variable with the histogram of sampled data:
+```{r}
+gf_dhistogram(~rbinom(20,13,1/2)) %>% gf_dist("binom",params=list(size=13,prob=1/2))
+```
+
+# Normal Distribution 
+
+In R, the pdf for a normal distribution is implemented by dnorm, the cdf for a normal distribution is implemented by pnorm, and rnorm generates random numbers following a normal distribution. 
+
+### Visualizing Normal Distributions
+
+This plot shows the pdf of a normal distribution:
+```{r}
+gf_dist("norm",params=list(mean=12,sd=2))
+```
+For the particular normal distribution above we have that the mean $\mu = 12$ and the variance $\sigma^2 = 4$ because sd stands for the standard deviation $\sigma$ which is the positive square root of the variance. That is 
+
+$\text{standard deviation} = \sqrt{\text{variance}}$.
+
+The plot of the cdf of a normal distribution with mean $\mu = 12$ and the variance $\sigma^2 = 4$ is
+```{r}
+gf_dist("norm",params=list(mean=12,sd=2),kind="cdf")
+```
+
+If you compare the plot of a binomial distribution with the plot of a normal distribution, it is clear that the normal distribution is continuous while the binomial is discrete. 
+
+Let's examine how changing the mean affects the plot of a normal distribution:
+```{r}
+gf_dist("norm",params=list(mean=1,sd=0.5),color="blue") %>% gf_dist("norm",params=list(mean=2,sd=0.5),color="red")
+```
+The blue curve has mean $\mu = 1$ while the red curve has mean $\mu = 2$. 
+
+Now let's see how the variance affects the plot of a normal distribution:
+```{r}
+gf_dist("norm",params=list(mean=0,sd=1/2),color="blue") %>% gf_dist("norm",params=list(mean=0,sd=2),color="red")
+```
+The blue curve has variance $\sigma^2 = \frac{1}{4}$ while the red curve has variance $\sigma^2 = 4$. 
+
+### Computing Probabilities with Normal Distributions
+
+There is one subtlety of continuous random variables that we have not fully pointed out yet. That is, if $X$ is a continuous random variable, then $P(X = x) = 0$ for all $x$. In other words, the probability that $X$ takes on any one single value is always zero. Thus, for continuous random variables, one is typically more interested in the probability that $X$ falls in some interval. Of course by what we already know
+
+$P(X \in [a,b]) = P(a \leq X \leq b) =\int_{a}^{b}f(x)\ dx$, 
+
+whenever $f$ is a pdf for $X$. In addition, if $F$ is the cdf for $X$, then
+
+$P(X \in [a,b]) = P(a \leq X \leq b) =\int_{a}^{b}f(x)\ dx = F(b) - F(a)$. 
+
+The point is, for a normal distribution dbinom does not return a probability value but just a real number output from the probability density function. 
+
+**Example:** Suppose that $X$ has a normal distribution with mean $\mu = 2$ and variance $\sigma^2 = \frac{1}{16}$ (so the standard deviation is $\sigma=\frac{1}{4}$). Then 
+
+$P(0 \leq X \leq 2)$ can be computed in R as
+```{r}
+pnorm(2,2,1/4) - pnorm(0,2,1/4)
+```
+
+Notice that this should  equal 
+
+$\int_{0}^{2}f(x)\ dx = \int_{0}^{2}\frac{1}{\sqrt{\frac{2\pi}{16}}}e^{-\frac{(x - 2)^2}{\frac{2}{16}}}\ dx$
+
+which we can compute numerically in R as
+```{r}
+integrate(function(x) dnorm(x,2,1/4),0,2)$value
+```
+
+### Random Number Generation from a Normal Distribution
+
+The R function rnorm produces a random number from a normal distribution. For example, suppose we want to simulate a normal random variabel with mean $\mu = 10$ and variance $\sigma^2 = 9$. This can be done with
+```{r}
+rnorm(1,10,3)
+```
+Note that each time we run this code we get a different value. 
+
+In what sense is this sampling from a normal distribution? Let's see what we get if we simulate repeating twenty trials of the experiment:
+```{r}
+rnorm(20,10,3)
+```
+
+One way to demonstrate this visually is to compute the plot of the pdf of the random variable with the histogram of sampled data:
+```{r}
+gf_dhistogram(~rnorm(100,10,3)) %>% gf_dist("norm",params=list(mean=10,sd=3))
+```
+
+# Working with Other Distributions 
+
+There are a number of common distributions implemented in R. You can use any distribution implemented in R in a manner similar to how we have used the binom and norm distribution functions. All you need to know is the name of the distribution (specifically its name in R), what are the parameters that need to be specified, and whether it is discrete or continuous. Of course a reference to the help documentation can be very useful. For example, there is a well-known distribution called the exponential distribution. Let's access the appropriate help documentation:
+```{r}
+?dexp
+```
+
+This is a continuous distribution with one parameter called the rate (mathematically denoted by $\lambda$). Let's look at a graph of an exponential distribution:
+```{r}
+gf_dist("exp",params=list(rate=1/2))
+```
+
+**Exercise:** Try different values for the rate parameter in order to determine how its value affects the graph of this pdf. 
+
+If we know that a random variable $X$ has an exponential distribution with rate $\lambda = 2$, then we can easily compute probability values such as
+
+$P(X \leq 1)$:
+```{r}
+pexp(1,2)
+```
+
+and
+$P(X > 1)$:
+```{r}
+1 - pexp(1,2)
+```
+
+and
+$P(1 \leq X \leq 3)$:
+```{r}
+pexp(3,2) - pexp(1,2)
+```
+
+or as a numerical integral:
+```{r}
+integrate(function(x) dexp(x,2),1,3)$value
+```
+
+Similar to what we have seen before, the R function rexp would generate random numbers following an exponential distribution. 
+
+We have seen that it is very easy and quite convenient to carry out probability computations with R. Moving forward we will make extensive use of R for computing probabilities. In particular, we will conduct most of the proability calculations necessary in statistical applications with R. 
