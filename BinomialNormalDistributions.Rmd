@@ -9,7 +9,7 @@ library(fastR2)
 
 # Introduction 
 
-In Written Notes 15 and Video Lecture 8 we introduced binomial and normal distributions as very iportant examples of a discrete and continuous distribution respectively. In this notebook, we will see how to use R to 
+In Written Notes 15 and Video Lecture 8 we introduced binomial and normal distributions as very important examples of a discrete and continuous distribution respectively. In this notebook, we will see how to use R to 
 
 1) visualize these distributions,
 
@@ -72,6 +72,7 @@ dbinom(0:25,25,0.3)
 ```
 
 Let's use R to solve one of the examples given in Written Notes 15 and Video Lecture 8:
+
 **Example:** What is the probability of rolling a fair six-sided die five times and getting two sixes? Recall that to solve this problem we use a binomial distribution with the number of trials $n=5$ and the probability of success $\rho = \frac{1}{6}$. Then we can compute the probability value with
 ```{r}
 dbinom(2,5,1/6)
