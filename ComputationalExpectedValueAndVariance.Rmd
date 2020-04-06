@@ -1,0 +1,180 @@
+---
+title: "Notebook on Expected Value and Variance"
+output: html_notebook
+---
+
+```{r,warning=FALSE,message=FALSE}
+library(fastR2)
+```
+
+
+# Introduction 
+
+Recall that in lectures we have defined:
+
+**Expected Value:**
+
+$E[X] = \sum_{\text{all}\ k} k P(X = k)$ in the discrete case,
+
+and
+
+$E[X] = \int_{-\infty}^{\infty}x f(x) \ dx$ in the continuous case; 
+
+and
+
+**Variance:**
+
+$\text{Var}[X] = E[(X - E[X])^2] = E[X^2] - (E[X])^2$. 
+
+Furthermore, we showed that
+
+1) If $X$ is binomial, then
+
+$E[X] = n \rho$, and 
+
+$\text{Var}[X] = n\rho (1 - \rho)$.
+
+2) If $X$ is normal, then
+
+$E[X] = \mu$, and
+
+$\text{Var}[X] = \sigma^2$.
+
+In this notebook, we try to develop some intuition behind these concepts through computation. 
+
+# Mean and Variance for Data
+
+Suppose we have some numerical data, for example
+```{r}
+(x <- c(1,2.5,3,4.1,2.3,1.8,1.2,2.5,2.8,3.7))
+```
+
+In R we can compute the mean and variance (the standard deviation squared) by
+
+```{r}
+mean(x)
+```
+and
+```{r}
+var(x)
+```
+
+or
+```{r}
+sd(x)^2
+```
+
+What we will do is compute the numerical mean and variance for data that is sampled from a known distribution. Specifically, we wil sample from a binomial distribution with a fixed number or trials and a fixed value for the probability of success. Then, we will sample from a normal distribution with a fixed mean and variance value. We will compute the the numerical mean and variance for sample data and compare with the formulas that we have derived for the exact expected value and variance for binomial and normal random variables. 
+
+# Sampling Data
+
+## Binomial Example
+
+Let's take a sample of twenty observations from a binomial random variable with $n=10$ and $\rho = \frac{2}{3}$. 
+```{r}
+N <- 20
+n <- 10
+rho <- 2/3
+(samp_binom <- rbinom(N,n,rho))
+```
+
+Now let's compute the numerical mean and variance of the sample:
+```{r}
+(samp_mean_binom <- mean(samp_binom))
+(samp_var_binom <- var(samp_binom))
+```
+
+Let's compute the values $n\rho$ and $n\rho(1-\rho)$ whenever $n=10$ and $\rho = \frac{2}{3}$:
+```{r}
+(mean_binom <- n*rho)
+(var_binom <- n*rho*(1 - rho))
+```
+
+Notice that the values we get using the formulas are very close to those we got by computing the numerical mean and variance from sample data.  This should typically be the However, since we are taking random samples the numerical mean and variance from sample data will vary from sample to sample. Let's see what happens if we take a large number of samples. 
+
+### Repeated Samples
+Here we will take repeated samples of twenty observations from a binomial distribution with $n=10$ and $\rho = \frac{2}{3}$. Specifically,  we will take 500 samples of twenty observations from a binomial distribution with $n=10$ and $\rho = \frac{2}{3}$. Each time, we will compute the numerical mean and variance from the sample data. Then, we will plot histograms of the sample mean and variance and compare the results with the values obtained using the theoretical formulas.   
+
+```{r}
+repeat_binom_mean <- numeric(500)
+repeat_binom_var <- numeric(500)
+for (i in 1:500){
+   data <- rbinom(N,n,rho)
+   repeat_binom_mean[i] <- mean(data)
+   repeat_binom_var[i] <- var(data)
+}
+```
+
+#### Numerical Means for Repeated Samples
+Here is a histogram of the numerical mean values computed for 500 repeated samples of twenty observations from a binomial distribution with $n=10$ and $\rho = \frac{2}{3}$:
+```{r}
+gf_histogram(~repeat_binom_mean)
+```
+
+Let's plot the value computed with the formula $n\rho$ as a vertical line on top of the histogram:
+```{r}
+ gf_histogram(~repeat_binom_mean) %>% gf_vline(xintercept=n*rho)
+```
+
+What we see is that all of the sample means "bunch up" around the theoretical mean value determined by the formula $n\rho$. Something similar happens for the theoretical variance:
+```{r}
+ gf_histogram(~repeat_binom_var) %>% gf_vline(xintercept=n*rho*(1-rho))
+```
+
+## Normal Example
+Now, let's do for a normal distribution what we just did for the binomial distribution. Specifically, let's take a sample of twenty observations from a normal random variable with $\mu=5$ and $\sigma^2 = 9$. 
+```{r}
+N <- 20
+mu <- 5
+sigma2 <- 9
+sigma <- sqrt(sigma2)
+(samp_norm <- rnorm(N,mu,sigma))
+```
+
+Now let's compute the numerical mean and variance of the sample:
+```{r}
+(samp_mean_norm <- mean(samp_norm))
+(samp_var_norm <- var(samp_norm))
+```
+
+Notice that we get a numerical mean value near 5 and a numerical variance value near 9. This should be typical. 
+
+### Repeated Samples
+Here we will take repeated samples of twenty observations from a normal distribution with $mu=5$ and $\sigma^2 = 9$. Specifically,  we will take 500 samples of twenty observations from a normal distribution with $\mu=5$ and $\sigma^2 = 9$. Each time, we will compute the numerical mean and variance from the sample data. Then, we will plot histograms of the sample mean and variance and compare the results with the values obtained using the theoretical formulas.   
+
+```{r}
+repeat_norm_mean <- numeric(500)
+repeat_norm_var <- numeric(500)
+for (i in 1:500){
+   data <- rnorm(N,mu,sigma)
+   repeat_norm_mean[i] <- mean(data)
+   repeat_norm_var[i] <- var(data)
+}
+```
+
+#### Numerical Means for Repeated Samples
+Here is a histogram of the numerical mean values computed for 500 repeated samples of twenty observations from a normal distribution with $\mu=5$ and $\sigma^2 = 9$:
+```{r}
+gf_histogram(~repeat_norm_mean)
+```
+
+Let's plot the value computed with the formula $\mu$ as a vertical line on top of the histogram:
+```{r}
+ gf_histogram(~repeat_norm_mean) %>% gf_vline(xintercept=mu)
+```
+
+What we see is that all of the sample means "bunch up" around the theoretical mean value determined by the formula $\mu$. Something similar happens for the theoretical variance:
+```{r}
+ gf_histogram(~repeat_norm_var) %>% gf_vline(xintercept=sigma2)
+```
+
+
+# Conclusions
+
+Here is what we can learn from our computations:
+
+1) If data is sampled from a binomial distribution, then the numerical mean of the sample should be a good estimate for $n\rho$ and the sample variance should be a good estimate for $n\rho(1 - \rho)$. 
+
+2) If data is sampled from a normal distribution, then the numerical mean of the sample shoud be a good estimate for $\mu$ and the sample variance should be a good estimate for $\sigma^2$. 
+
+3) Repeated sample values for the numerical analog of expected value or variance are subject to variation. This means that, for example, sample mean and sample variance are random variables that have their own distributions. These are referred to as sampling distributions and understanding sampling distributions is a major component of mathematical statistics and has a significant role to play in data science and machine learning.   
