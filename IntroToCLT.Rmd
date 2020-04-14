@@ -125,7 +125,7 @@ If we go back to our example of sampling from a uniform ditribution on $[0,10]$,
 
 A more general version of the CLT says the following:
 
-**Central Limit Theorem:** Let $X_{1}$, $X_{2}$, $\ldots$, $X_{n}$ be a sequence of independent random variables all with the same exact distribution. Let $\mu$ be the common expected value for each of these random variables. Then the distribution of the sampel mean $S_{n}$ is approximately normal with mean $\mu$ whenever $n$ (the number of samples) is sufficiently large. 
+**Central Limit Theorem:** Let $X_{1}$, $X_{2}$, $\ldots$, $X_{n}$ be a sequence of independent random variables all with the same exact distribution. Let $\mu$ be the common expected value for each of these random variables. Then the distribution of the sample mean $S_{n}$ is approximately normal with mean $\mu$ whenever $n$ (the number of samples) is sufficiently large. 
 
 
 It is possible to make the above statement a good deal more mathematically precise. For our purposes, here is what is most important:
