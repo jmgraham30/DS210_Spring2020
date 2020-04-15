@@ -1,0 +1,155 @@
+---
+title: "Introduction to Hypothesis Testing: Permutation Tests"
+output: html_notebook
+---
+
+```{r,message=FALSE,warning=FALSE}
+library(fastR2)
+library(knitr)
+library(resample)
+library(resampledata)
+```
+
+
+# Introduction to Hypothesis Testing
+
+In this notebook we introduce one of the key components of inferential statistics, hypothesis tests. We will closely follow the presentation from Chapter 3 of *Mathematical Statistics with Resampling and R* by Chihara and Hesterberg. 
+
+The biggest challenge with starting to learn about hypothesis testing is that there is initially a lot of terminology to digest. We will start with a very simple motivating example that should help to develop some intuition for what is going on beofre we dive into learning the necessary 
+nomenclature. 
+
+## A Motivating Problem
+
+Suppose scientists invent a new drug that supposedly will inhibit a mouse's ability to run through a maze. In order to test this hypothesis, the scientists design an experiment in which three randomly chosen mice are given the drug and another three are given a placebo in order to compare between a control group and a drug group. All six mice are placed in a maze and the time it takes each mouse to complete the maze is recorded. The collected data looks as follows:
+```{r}
+mouse_data <- data.frame(times=c(30,25,20,18,21,22),
+                         group=c(rep("Drug",3),rep("Control",3)),
+                         row.names = c("Mouse1","Mouse2","Mouse3","Mouse4","Mouse5","Mouse6"))
+kable(mouse_data)
+```
+
+A convenient way to summarise this data is to compute the mean time from the three mice in each of the two groups:
+```{r}
+mouse_data %>% group_by(group) %>% summarise(mean_time=mean(times))
+```
+
+We can even go one step further and turn this into a single number by computing the mean difference in times:
+```{r}
+data_summary <- mouse_data %>% 
+  group_by(group) %>% 
+  summarise(mean_time=mean(times)) 
+data_summary$mean_time %>% unlist() %>% diff()
+```
+
+Let's actually turn this into a function. 
+```{r}
+mean_diff <- function(mouse_data){
+  data_summary <- mouse_data %>% 
+  group_by(group) %>% 
+  summarise(mean_time=mean(times)) 
+  mean_diff_val <- data_summary$mean_time %>% unlist() %>% diff()
+  return(mean_diff_val)
+}
+```
+
+We can check that our function works:
+```{r}
+(mean_diff_obs <- mean_diff(mouse_data))
+```
+
+Here is the question we seek to answer via statistical inference:
+
+**Question:** Is the observed value of 4.67 in the difference between the mean maze times for the two groups of mice due simply to natural random variablility, or is it because there is some real effect? 
+
+Here is a simple way to address this question:
+
+**Observation:** If the observed difference of 4.67 in the mean maze times between the two groups of mice **is** due to natural random variability, then the group labeling of Drug versus Control for the six mice is arbitrary and should not matter. 
+
+Another way to think of this is as follows: 
+
+1) Consider the mice as a single group of six. 
+
+2) Randomly assign three to the "Control" group and three to the "Drug" group.
+
+3) Compute the mean difference in times again. 
+
+4) Repeat this process for all the ways that we can possibly assign three to "Control" and three to "Drug", that is, consider all possible permutations of the six mice where after each permutation we separate the six into two groups of three. 
+
+5) In the absence of any real effect, a value as or more extreme than 4.67 in the mean maze times between the two groups should not be a rarity. If a value as or more extreme than 4.67 in the mean maze times between the two groups is rare, then there is a high probability that the difference is due to a true effect. 
+
+This is the essence of a so-called **permutation test**. 
+
+Let's look at some values for the mean difference in maze times between the two groups for some permutations of the maze times for the six mice:
+```{r}
+time_vals <- c(30,25,20,18,21,22)
+mouse_data_perm <- data.frame(times=sample(time_vals,replace = F),
+                              group=c(rep("Drug",3),rep("Control",3)),
+                              row.names = c("Mouse1","Mouse2","Mouse3","Mouse4","Mouse5","Mouse6"))
+kable(mouse_data_perm)
+```
+
+Notice that each time we rerun this code, we get a different ordering in the list of times. Furthermore, if there is no real effect, then the ordering should not really matter very much.  Let's recompute the mean difference in times for the permuted data:
+```{r}
+(mean_diff_val_perm <- mean_diff(mouse_data_perm))
+```
+
+Notice that there are a total of six factorial, that is `r factorial(6)`, permutations for the maze times. Since facorials grow very quickly in size, it may not be feasible to check the mean difference in times for all possible permutations. However, we can repeat this a large number of times and the results should be highly representative of what we should see if we were to consider all possible permutations provided that the process is repeated sufficicently many times. Let's do this now and collect the results. It's useful to write another function that incorporates the permuting:
+```{r}
+mean_diff_perm <- function(){
+  time_vals <- c(30,25,20,18,21,22)
+  mouse_data_perm <- data.frame(times=sample(time_vals,replace = F),
+                              group=c(rep("Drug",3),rep("Control",3)),
+                              row.names = c("Mouse1","Mouse2","Mouse3","Mouse4","Mouse5","Mouse6"))
+  data_summary <- mouse_data_perm %>% 
+  group_by(group) %>% 
+  summarise(mean_time=mean(times)) 
+  mean_diff_val <- data_summary$mean_time %>% unlist() %>% diff()
+  return(mean_diff_val)
+}
+```
+
+Now we can use the do() function to run this function some very large number of times and collect the results:
+```{r}
+N <- 10000 # a large number of times
+results <- do(N)*c(mean_diff_vals = mean_diff_perm())
+```
+
+This may take a little while to run but once it is done, we can plot a histogram of all the mean difference in times obtained for each of the large number of times that we permute the data, together with the observed mean difference in times:
+```{r}
+results %>% gf_histogram(~mean_diff_vals,bins = 10) %>% 
+  gf_vline(xintercept = mean_diff_obs,color="red")
+```
+
+The red vertical line indicates the observed mean difference in times `r mean_diff_obs`. 
+
+**Question:** Is it typical to get a mean difference in times greater than or equal to `r mean_diff_obs`?
+
+We can easily compute the proportion of times that the permutated data results in a value that is greater than or equal to the observed value `r mean_diff_obs`:
+```{r}
+(sum(results$mean_diff_vals >= mean_diff_obs) + 1)/(N + 1)
+```
+
+About 15% of the time, we observe a mean difference in times that is at least as large as `r mean_diff_obs`. Thus, we conclude that getting a value as large as the one that we observed in the original data is not extremely rare. Alas we can not reasonably rule out the possibility that the observed difference in maze times is due simply to natural random variation. In the terminology that is soon to be introduced, we would fail to reject the null hypothesis. 
+
+Hopefully this example gives you some intuitive idea of what is going on in hypothesis testing and some sense of how a permutation test works. We will now introduce some terminology and then follow that up with some more examples of permutation tests. 
+
+# Hypothesis Tests Terminology
+
+**Definition:** The *null hypothesis*, denoted $H_{0}$, is a statement that corresponds to no real effect. This is the status quo, in the absence of the data providing convincing evidence to the contrary. The *allternative hypothesis*, denoted $H_{A}$, is a statment that there is a real effect. The data may provide convincing evidence that this hypothesis is true. 
+
+A hypothesis should involve a statement about a population parameter or parameters, commonly referred to as $\theta$; the null hypothesis is $H_{0}: \theta = \theta_{0}$ for some fixed value $\theta_{0}$. A **one-sided** alternative hypothesis is of the form $H_{A}: \theta > \theta_{0}$ or $H_{A}: \theta < \theta_{0}$; a **two-sided** alternative hypothesis is $H_{A}:\theta \neq \theta_{0}$. 
+
+
+**Example:** Consider the mice example. Let $\mu_{d}$ denote the true mean time that a randomly selected mouse that received the drug takes to run through the maze; let $\mu_{c}$ denote the true mean time for a control mouse. Then $H_{0}:\mu_{d} - \mu_{c} = 0$ and $H_{A}: \mu_{d} - \mu_{c} > 0$. Thus our parameter $\theta = \mu_{d} - \mu_{c}$. 
+
+**Definition:** A *test statistic* is a numerical function of the data whose value determines the result of the test. The function itself is generally denoted $T = T(X_{1},X_{2},\ldots ,X_{n})$ in a one-sample problem or $T=T(X_{1},X_{2},\ldots ,X_{n},Y_{1},Y_{2},\ldots ,Y_{m})$ in a two-sample problem. Notice that a test statistic is a random variable, the distribution of a test statistic is called the sampling distribution of the statistic and the standard deviation of a test statistic is called the standard error of the statistic. A specific test statistic value computed from sample data is called an *observed value*, sometimes denotes by lower-case $t$. 
+
+**Definition:** The $p$-value is the probability that chance alone would produce a test statistic as or more extreme than the observed test statistic if the null hypothesis were true. 
+
+**Definition:** The *null distribution* is the distribution of the test statistic if the null hypothesis is true. 
+
+
+
+
+
+
