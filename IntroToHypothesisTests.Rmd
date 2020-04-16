@@ -1,12 +1,13 @@
 ---
-title: "Introduction to Hypothesis Testing: Permutation Tests"
-output: html_notebook
+title: 'Introduction to Hypothesis Testing: Permutation Tests'
+output:
+  pdf_document: default
+  html_notebook: default
 ---
 
 ```{r,message=FALSE,warning=FALSE}
 library(fastR2)
 library(knitr)
-library(resample)
 library(resampledata)
 ```
 
@@ -33,15 +34,16 @@ A convenient way to summarise this data is to compute the mean time from the thr
 mouse_data %>% group_by(group) %>% summarise(mean_time=mean(times))
 ```
 
-We can even go one step further and turn this into a single number by computing the mean difference in times:
+We can go even one step further and turn this into a single number by computing the mean difference in times:
 ```{r}
 data_summary <- mouse_data %>% 
   group_by(group) %>% 
   summarise(mean_time=mean(times)) 
 data_summary$mean_time %>% unlist() %>% diff()
 ```
+This is an example of an observed test statistic. 
 
-Let's actually turn this into a function. 
+Let's actually turn this into an R function for future convenience. 
 ```{r}
 mean_diff <- function(mouse_data){
   data_summary <- mouse_data %>% 
@@ -110,7 +112,7 @@ mean_diff_perm <- function(){
 
 Now we can use the do() function to run this function some very large number of times and collect the results:
 ```{r}
-N <- 10000 # a large number of times
+N <- 2500 # a large number of times
 results <- do(N)*c(mean_diff_vals = mean_diff_perm())
 ```
 
@@ -131,14 +133,21 @@ We can easily compute the proportion of times that the permutated data results i
 
 About 15% of the time, we observe a mean difference in times that is at least as large as `r mean_diff_obs`. Thus, we conclude that getting a value as large as the one that we observed in the original data is not extremely rare. Alas we can not reasonably rule out the possibility that the observed difference in maze times is due simply to natural random variation. In the terminology that is soon to be introduced, we would fail to reject the null hypothesis. 
 
+Since this example is relatively small, it is actually pretty easy to find all possible distinct values for the difference in means, there are only twenty. Out of twenty, three are greater or equal to 4.67. Notice that 
+```{r}
+3/20
+```
+is exactly 15%. This illustrates the fact that it is not really necessary to consider all possible permutations, and that if we just look at some very large number of permutations then that should be sufficient. 
+
 Hopefully this example gives you some intuitive idea of what is going on in hypothesis testing and some sense of how a permutation test works. We will now introduce some terminology and then follow that up with some more examples of permutation tests. 
 
-# Hypothesis Tests Terminology
+# Hypothesis Testing Terminology
 
 **Definition:** The *null hypothesis*, denoted $H_{0}$, is a statement that corresponds to no real effect. This is the status quo, in the absence of the data providing convincing evidence to the contrary. The *allternative hypothesis*, denoted $H_{A}$, is a statment that there is a real effect. The data may provide convincing evidence that this hypothesis is true. 
 
 A hypothesis should involve a statement about a population parameter or parameters, commonly referred to as $\theta$; the null hypothesis is $H_{0}: \theta = \theta_{0}$ for some fixed value $\theta_{0}$. A **one-sided** alternative hypothesis is of the form $H_{A}: \theta > \theta_{0}$ or $H_{A}: \theta < \theta_{0}$; a **two-sided** alternative hypothesis is $H_{A}:\theta \neq \theta_{0}$. 
 
+**Note:** In practice one either rejects the null hypothesis or fails to reject the null hypothesis. 
 
 **Example:** Consider the mice example. Let $\mu_{d}$ denote the true mean time that a randomly selected mouse that received the drug takes to run through the maze; let $\mu_{c}$ denote the true mean time for a control mouse. Then $H_{0}:\mu_{d} - \mu_{c} = 0$ and $H_{A}: \mu_{d} - \mu_{c} > 0$. Thus our parameter $\theta = \mu_{d} - \mu_{c}$. 
 
@@ -146,10 +155,110 @@ A hypothesis should involve a statement about a population parameter or paramete
 
 **Definition:** The $p$-value is the probability that chance alone would produce a test statistic as or more extreme than the observed test statistic if the null hypothesis were true. 
 
+**Example:** In the mice example, we let the test statistic be the difference in means, $T=T(X_{1},X_{2},X_{3},Y_{1},Y_{2},Y_{3}) = \bar{X} - \bar{Y}$, where
+
+$\bar{X} = \frac{X_{1} + X_{2} + X_{3}}{3}$
+
+and
+
+$\bar{Y} = \frac{Y_{1} + Y_{2} + Y_{3}}{3}$
+
+with observed value $t = \bar{x} - \bar{y} = 4.67$, where
+
+$\bar{x} = \frac{30 + 25 + 20}{3} = 25$
+
+and
+
+$\bar{y} = \frac{18 + 21 + 22}{3} = 20.33$.
+
+The proportion of times that the permutated data results in a value that is greater than or equal to the observed value 4.67 provides an estimate for a $p$-value since this is approximately the probability that, under the null hypothesis, we obtain a result that is as or more extreme than the observed value. 
+
 **Definition:** The *null distribution* is the distribution of the test statistic if the null hypothesis is true. 
 
 
+# Another Example
+
+Consider the Beer and Hot Wings data. This data is in the resampledata package and stored as Beerwings. The data comes from an experiment in which a student recorded the consumption of hot wings by other students. We can examine the first few rows of this data:
+```{r}
+head(Beerwings)
+```
+
+**Question:** What is contained in this data? 
+
+Since the students observed for this data are identified as either female (F) or male (M), we should determine how many are labeled as (F) and how many are labeled as (M). 
+```{r}
+table(Beerwings$Gender)
+```
+
+We see there are 15 (F) and 15 (M). 
+
+Let's examine a box plot that shows the number of hot wings per Gender in the data:
+```{r}
+Beerwings %>% gf_boxplot(Hotwings ~ Gender)
+```
+
+It appears based on this boxplot that on average, individuals recorded as female (F) consume fewer hotwings than those individuals recorded as male (M). 
+
+**Question:** Is this observed difference likely due to random chance or might there be a real effect? We can employ a permutation test once again in an attempt answer this question. 
+
+We need a test statistic and we can again take a difference in means. Let's compute the observed value for this test statistic:
+
+First, compute the mean number of hotwings per Gender in the observed data:
+```{r}
+Beerwings %>% 
+  group_by(Gender) %>%
+  summarise(mean=mean(Hotwings))
+```
+
+Now compute the observed difference in means:
+```{r}
+(obs_diff <- 14.53 - 9.33) 
+```
+
+Let $\mu_{M}$ be the mean number of hotwings for a male student and $\mu_{F}$ be the mean number of hotwings for a female student. Then $\mu_{M} - \mu_{F}$ is our test statistic and we seek to test the hypothesis:
 
 
+Null Hypothesis - $H_{0}: \mu_{M} - \mu_{F} = 0$
+
+versus 
+
+Alternative Hypothesis - $H_{A}: \mu_{M} - \mu_{F} > 0$
+
+So this is a one-sided test. 
+
+Under the null hypothesis, we should expect that the Gender label has no real significance for the number of hotwings an individual eats. Thus, we can treat Hotwings as a single list of 30 observations, permute it and divide it in half (15 and 15), then compute the mean value for each half, and finally compute the difference in means. If we repeat this process a large number of times the proportion of values obtained that are as or more extreme than our observed value of `r obs_diff` will be a $p$-value (at least appoximately).  
 
 
+Let's carry this out in R code:
+
+First we write a function that will input the Hotwings variable, permute it, split it in two equal parts, then compute the difference in means for the two parts. 
+```{r}
+diff_mean_perm <- function(wings_data){
+  perm_data <- sample(wings_data,replace = F)
+  F_wings <- perm_data[1:15]
+  M_wings <- perm_data[16:30]
+  mu_M <- mean(M_wings)
+  mu_F <- mean(F_wings)
+  return(mu_M - mu_F)
+}
+```
+
+Now we will repeatedly compute the difference in means for the permuted data some large number of times:
+```{r}
+N <- 5000
+wings_results <- do(N) * c(diff_means = diff_mean_perm(Beerwings$Hotwings))
+```
+
+Let's look at a histogram of our results:
+```{r}
+wings_results %>% gf_histogram(~diff_means) %>% gf_vline(xintercept = obs_diff,color="red")
+```
+
+The red vertical line indicates our observed test statistic value. We can compute the proportion of times that the mean difference in the permuted data is greater or equal to the observed value `r obs_diff`. This will give us a $p$-value (approximately):
+```{r}
+(sum(wings_results$diff_means >= obs_diff) + 1)/(N + 1)
+```
+
+So under the null hypothesis, only about 0.01% of the time would we expect to see an observed difference of `r obs_diff` or greater for the test statistic $\mu_{M} - \mu_{F}$. This is quite rare, so we should feel confident that our data provides sufficiently strong evidence to reject the null hypothesis that the observed difference in the number of hotwings individuals labeled as (F) consume compared with the number of hotwings individuals labeled as (M) is unlikely due to pure random chance.  
+
+In the next notebook, we will consider additional topics in hypothesis testing and learn a little more about permutation tests. 
