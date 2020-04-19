@@ -1,8 +1,8 @@
 ---
 title: 'Introduction to Hypothesis Testing: Permutation Tests'
 output:
-  pdf_document: default
   html_notebook: default
+  pdf_document: default
 ---
 
 ```{r,message=FALSE,warning=FALSE}
@@ -26,6 +26,15 @@ Suppose scientists invent a new drug that supposedly will inhibit a mouse's abil
 mouse_data <- data.frame(times=c(30,25,20,18,21,22),
                          group=c(rep("Drug",3),rep("Control",3)),
                          row.names = c("Mouse1","Mouse2","Mouse3","Mouse4","Mouse5","Mouse6"))
+mouse_data
+```
+
+```{r}
+mouse_data$times
+```
+
+
+```{r}
 kable(mouse_data)
 ```
 
@@ -90,6 +99,11 @@ mouse_data_perm <- data.frame(times=sample(time_vals,replace = F),
 kable(mouse_data_perm)
 ```
 
+```{r}
+my_data <- c(3,7,12,8)
+sample(my_data,replace = FALSE)
+```
+
 Notice that each time we rerun this code, we get a different ordering in the list of times. Furthermore, if there is no real effect, then the ordering should not really matter very much.  Let's recompute the mean difference in times for the permuted data:
 ```{r}
 (mean_diff_val_perm <- mean_diff(mouse_data_perm))
@@ -110,10 +124,22 @@ mean_diff_perm <- function(){
 }
 ```
 
+```{r}
+mean_diff_perm()
+```
+
 Now we can use the do() function to run this function some very large number of times and collect the results:
 ```{r}
 N <- 2500 # a large number of times
 results <- do(N)*c(mean_diff_vals = mean_diff_perm())
+```
+
+```{r}
+head(results)
+```
+
+```{r}
+unique(results$mean_diff_vals)
 ```
 
 This may take a little while to run but once it is done, we can plot a histogram of all the mean difference in times obtained for each of the large number of times that we permute the data, together with the observed mean difference in times:
@@ -125,6 +151,11 @@ results %>% gf_histogram(~mean_diff_vals,bins = 10) %>%
 The red vertical line indicates the observed mean difference in times `r mean_diff_obs`. 
 
 **Question:** Is it typical to get a mean difference in times greater than or equal to `r mean_diff_obs`?
+
+```{r}
+my_vect <- c(-2,3,-1,1,4,-8)
+sum(my_vect <= 0)
+```
 
 We can easily compute the proportion of times that the permutated data results in a value that is greater than or equal to the observed value `r mean_diff_obs`:
 ```{r}
