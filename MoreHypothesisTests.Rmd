@@ -175,7 +175,8 @@ Before the advent of sufficiently powerful and broadly accessible computing powe
 
 Here is an example application of a traditional $t$-test. Suppose that a company claims that their coffee vending machine dispenses 7 ounces of coffee per cup. It is unlikely that the machine is so perfect as to fill each cup with exactly 7 ounces each time so there is some natural variation to be expected. When an experiment is performed, we find that out of some number $n$ cups vended randomly selected for measurement, we find the following data:
 ```{r}
-coffee <- c(6.4,6.5,7.1,6.5,7,6.5,7,6.6,7,6.6,6.7,6.8,6.5,7,6.8,6.6,6.8,6.6)
+set.seed(1234)
+coffee <- rnorm(15,6.6,0.8)
 ```
 Thus, the average amount of coffee per cup is about `r round(mean(coffee),2)` ounces. Is the company being honest about their claim? In order to determine this, we can test
 
@@ -246,42 +247,4 @@ compared with about 0.25774 obtained from a permutation test.
 
 # A One-sample Permutation Test
 
-So far, we have only seen two-sample permutation tests. How can we conduct a one-sided permutation test as we did with the coffee data? Let's think about this. Subtract 7 (the hypothesized mean value) from each of the data points in the coffee data:
-```{r}
-coffee_minus_seven <- coffee - 7
-```
-Under the null hypothesis that 7 is the true mean, we should expect to get a roughly equal number of positive and negative values upon repeated resampling. 
-
-Let's determine how often (out of `r length(coffee)` total data values) the observed data point is less than the hypothesized mean value of 7:
-```{r}
-(obs_neg <- sum(coffee_minus_seven < 0))
-```
-We see that `r obs_neg` out of `r length(coffee)` of data points are less than 7. 
-
-
-Now what we can do is to randomly shuffle the sign of the data values minus 7 and find the proportion of times that we get a result as or more extreme that what we observe in the collected data:
-```{r}
-N <- 10^5 - 1
-sign_results <- numeric(N)
-for (i in 1:N){
-  sign_vals <- sample(c(-1,1),length(coffee),replace = T)
-  sign_results[i] <- sum(sign_vals*coffee_minus_seven < 0)
-}
-```
-
-Let's look at the distribution of the number of negative values we get if we randomly assign a sign to `r length(coffee)` values:
-```{r}
-gf_bar(~sign_results) %>% gf_vline(xintercept = obs_neg,color="red")
-```
-
-The red vertical line indicates our observed value of `r obs_neg` negative values. We see that under the null hypothesis, we expect that most often we will get about the same number of positive values as negative. Let's compute the proportion of times that we get as many or more than `r obs_neg` negative values:
-```{r}
-(sum(sign_results >= obs_neg) + 1)/(N+1)
-```
-Again, we obtain a very small $p$-value so we can feel reasonably confident that our data provides strong evidence for rejecting the null hypothesis. There is one subtle issue here however. The $p$-value in our permutation test is a fair amount larger than the $p$-value obtained using a $t$-test. The reason for this is most likely due to the fact that for a reliable $t$-test on a relatively small sample size, we are relying heavily on an assumption that the data comes from a population with a normal distribution. It is not necessarily (in fact unlikely) the case that our coffee data is sampled from a normal distribution. In this case, the permutation test is more reliable because it does not depend on an assumption about the distribution from which the data is sampled. This is not to imply that things can never go wrong with a permutation test. For example, regardless of what type of test you use, a small sample size can lead to unreliable results. How small is too small? The answer to that question can be complicated and will be taken up later.    
-
-
-
-
-
-
+So far, we have only seen two-sample permutation tests. How can we conduct a one-sample permutation test as we did with the coffee data? This is not really a common application of permutation tests, there is another resampling approach that we will learn later called bootstrapping that is more appropriate for one-sample applications. Before we get into this, we need to discuss the notion of confidence intervals. This is what we will take up in the next notebook. 
