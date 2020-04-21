@@ -73,7 +73,9 @@ est_results %>% gf_histogram(~rho_est)
 What values occurs most often? Definitely values that are pretty close to `r rho`. 
 
 
-This shoud provide some assurance that, at least with reasonably high probability, $\hat{\rho} = \frac{n_{\text{heads}}}{n}$  gives a good estimate for $\rho$.  
+This shoud provide some assurance that, at least with reasonably high probability, $\hat{\rho} = \frac{n_{\text{heads}}}{n}$  gives a good estimate for $\rho$. The issue is that, while with simulation it is easy to run the same experiment over and over again some large number of times, in real life it is often difficult to impossible to repeat an experiment. In this case, we get a single estimate for a population parameter. How do we assess the accuracy of our estimate? One common approach is with a confidence interval.  Let's explore this idea. 
+
+
 
 
 
