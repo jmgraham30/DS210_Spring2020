@@ -95,7 +95,7 @@ est_ci_sim <- function(rho=0.65,n=12){
 ```
 
 ```{r}
-N <- 5000
+N <- 100
 est_ci_res <- do(N)*c(est_ci_sim())
 ```
 
@@ -104,6 +104,14 @@ est_ci_res <- do(N)*c(est_ci_sim())
 head(est_ci_res)
 ```
 
+```{r}
+est_ci_res %>% ggplot(aes(x=seq(1,nrow(est_ci_res)),y=est_val)) +
+  geom_point() +
+  geom_linerange(aes(x=seq(1,nrow(est_ci_res)),ymin=lower,ymax=upper)) + 
+  ylim(c(0,1)) + 
+  geom_hline(yintercept = rho,color="red",linetype="dashed",size=1) + 
+  labs(x="",y="")
+```
 
 
 
