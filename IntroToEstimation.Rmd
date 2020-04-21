@@ -124,19 +124,47 @@ for (i in 1:nrow(est_ci_res)){
 k/nrow(est_ci_res)
 ```
 
+# Bootstrap for Confidence Intervals
+
+```{r}
+boot_prop <- function(coin_data){
+  return(sum(sample(coin_data,replace = T))/length(coin_data))
+}
+```
+
+```{r}
+boot_prop(coin_toss_sim)
+```
 
 
+```{r}
+N <- 10^5
+boot_res <- do(N)*c(boot_est = boot_prop(coin_toss_sim))
+```
 
 
+```{r}
+boot_res %>% gf_histogram(~boot_est) %>%
+  gf_vline(xintercept = rho_est)
+```
+
+```{r}
+sd(boot_res$boot_est)
+```
 
 
+```{r}
+quantile(boot_res$boot_est,c(0.025,0.975))
+```
+
+```{r}
+rho_est + 2*c(-1,1)*sd(boot_res$boot_est)
+```
 
 
-
-
-
-
-
+```{r}
+prop.test(n_heads,n)$conf.int
+```
 
 
 
