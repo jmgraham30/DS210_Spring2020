@@ -114,7 +114,15 @@ est_ci_res %>% ggplot(aes(x=seq(1,nrow(est_ci_res)),y=est_val)) +
 ```
 
 
-
+```{r}
+k <- 0
+for (i in 1:nrow(est_ci_res)){
+  if (est_ci_res$lower[i] <= rho & rho <= est_ci_res$upper[i]){
+    k <- k + 1
+  }
+}
+k/nrow(est_ci_res)
+```
 
 
 
