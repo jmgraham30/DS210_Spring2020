@@ -1,0 +1,145 @@
+---
+title: "Introduction to Estimation"
+output: html_notebook
+---
+
+```{r,message=FALSE,warning=FALSE}
+library(fastR2)
+```
+
+
+# Introduction 
+
+This notebook will introduce the second important procedure in statistical inference, estimation. Our goal is to introduce the notion of **confidence intervals**. For us, hypothesis testing and estimation, especially confidence intervals will be the most important statistical concepts. 
+
+Eventually we will learn about the bootstrap method for estimating the confidence interval of a parameter or test statistic. The bootstrap is a computational method that is absolutely essential in data science and machine learning. However, before we begin to discuss the bootstrap in detail it is very helpful to get a feel for what is known as point estimation.  We will do this by way of a simple example. 
+
+# Point Estimation Example
+
+Consider the following problem. Someone gives us a coin. If we toss the coin, we will land heads with some probability $\rho$. However, we do not necessarily know *a priori* what the numerical value of $\rho$ is. In this case, we call $\rho$ a **population** parameter because it is fixed but unknown. What we will attempt to do is to use data to estimate a value for $\rho$ in the hopes that our estimate will be reasonably accurate. Of course it will be necessary to assess the accuracy of our estimate. 
+
+How can we estimate $\rho$ from data? If we toss the coin say $n$ times then, as we have seen, a binomial distribution with probability of success equal to $\rho$ provides a good model for the probability that we obtain $n_{\text{heads}}$. Perhaps our understanding of this distribution can help us to estimate $\rho$. This is indeed the case. It should be fairly intuitive that an reasonable estimate, call the estimate $\hat{\rho}$ for $\rho$ is
+
+$\hat{\rho} = \frac{n_{\text{heads}}}{n}$
+
+This result can be derived mathematically using something called maximum likelihood but this is beyond the scope of this course. The important point for us is that the **estimator** $\hat{\rho}$ is a **random variable** because each time we perform the experiment we will possibly obtain a different number for  $n_{\text{heads}}$ and hence a different value for 
+
+$\hat{\rho} = \frac{n_{\text{heads}}}{n}$.
+
+Just to emphasize this, a radnom variable that provides a means to estimate a population parameter is called an estimator and a specific value for an estimator obtained from sample data is called an **estimate**, or a point estimate because it will be a single number. 
+
+Let's exemplify all of this by way of simulation. 
+
+## Estimation Simulation
+
+Let's fix a value for the population parameter $\rho$. Note that in reality we will not know the value of a population parameter. 
+```{r}
+# population parameter value fixed for simulation purposes
+rho <- 0.65
+```
+
+Now let's simulate tossing a coin with fixed probability of success `r rho` the value of which we will pretend that we do not know. Suppose we toss the coin 12 times. We can simulate this by
+```{r}
+n <- 12
+(coin_toss_sim <- rbinom(n,1,rho))
+```
+
+Remeber that 1 corresponds to heads while 0 corresponds to tails. Each time we run this code we will get a different number of heads. Then our estimate for $\rho$ is
+```{r}
+sum(coin_toss_sim)/n
+```
+But again, this value will change with each run of the simulation.
+
+Let's put of of this code together in a function and run the function many times. 
+
+```{r}
+est_sim <- function(rho=0.65,n=12){
+  return(sum(rbinom(n,1,rho))/n)
+}
+```
+
+Let's try out our function:
+```{r}
+est_sim()
+```
+
+Now let's run our function some large number of times, collect the results in a data frame and plot a histogram of the values we obtain. 
+```{r}
+N <- 5000
+est_results <- do(N)*c(rho_est = est_sim()) 
+est_results %>% gf_histogram(~rho_est)
+```
+
+What values occurs most often? Definitely values that are pretty close to `r rho`. 
+
+
+This shoud provide some assurance that, at least with reasonably high probability, $\hat{\rho} = \frac{n_{\text{heads}}}{n}$  gives a good estimate for $\rho$.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
