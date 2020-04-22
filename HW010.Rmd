@@ -1,0 +1,86 @@
+---
+title: "Homework 10"
+author: "Your Name"
+output:
+  html_notebook: default
+  pdf_document: default
+---
+
+```{r,warning=FALSE,message=FALSE}
+library(resampledata)
+library(fastR2)
+```
+
+## Problem 1
+
+Suppose you conduct an experiment and inject a drug into three mice. Their times for running a maze are 8, 10, and 15 s; the times for two control mice are 5 and 9 s. 
+
+a) Compute the difference in mean times between the treatment group and the control group. 
+
+b) Write out all possible permutations of these times to the two and calculate the difference in means for each permutation. 
+
+c) What proportion of the differences are as large or larger than the observed difference in mean times? 
+
+d) For each permutation, calculate the mean of the treatment group only. What proportion of these means are as large or larger than the observed mean of the treatment group? 
+
+## Problem 2
+
+In a hypothesis test comparing two population means, $H_{0}: \mu_{1} = \mu_{2}$ versus $H_{A}: \mu_{1} > \mu_{2}$:
+
+a) Which $p$-value 0.03 or 0.006 provides stronger evidence for the alternative hypothesis? 
+
+b) Which $p$-value, 0.095 or 0.04 provides stronger evidence that chance alone might account for the observed result? 
+
+## Problem 3
+
+Consider the flight delays data from the resample package, the first few rows of which are shown below
+```{r}
+head(FlightDelays)
+```
+
+This data records flight information for two airlines: United (UA), and American (AA). We might be intersted to see if one airline has flights that are consistently delayed more often than the other. To begin to study this, we can plot the delay times for each airline:
+```{r}
+FlightDelays %>% gf_boxplot(Delay~Carrier)
+```
+
+Note the number of times each airline appears in the data:
+```{r}
+table(FlightDelays$Carrier)
+```
+
+Alternatively, we might be interested to see if there is a difference in delay time between flights in the month of May and flights in the month of June. Again, a plot may be helpful:
+```{r}
+FlightDelays %>% gf_boxplot(Delay~Month)
+```
+
+Note the number of times each month appears in the data:
+```{r}
+table(FlightDelays$Month)
+```
+
+a) Conduct a two-sided permutation test to see if the difference in mean delay times between the two carriers are statistically significant. 
+
+b) Conduct a two-sided permutation test to see if the difference in mean delay times between the two months is statistically significant.
+
+## Problem 4
+
+
+One might often test the hypothesis in problem 3a using a method implemented with the following code:
+```{r}
+t.test(Delay~Carrier,data=FlightDelays)
+```
+Notice that this returns a $p$-value:
+```{r}
+t.test(Delay~Carrier,data=FlightDelays)$p.value
+```
+
+a) How do the result returned by using the t.test function above compare with what you obtained using a permutation test for 3a?
+
+b) Modify the above code to apply the t.test to test the hypothesis from problem 3b. Compare the results with what you obtained using a permutation test as done in problem 3b.  
+
+
+
+
+
+
+
