@@ -1,6 +1,8 @@
 ---
 title: "Introduction to Estimation"
-output: html_notebook
+output:
+  pdf_document: default
+  html_notebook: default
 ---
 
 ```{r,message=FALSE,warning=FALSE}
@@ -170,30 +172,40 @@ N <- 10^5
 boot_res <- do(N)*c(boot_est = boot_prop(coin_toss_sim))
 ```
 
-The reason why we do this is because resapling with replacement from a sample is effectively estimating the sampling distribution by way of simulation.  
-
+The reason why we do this is because resampling with replacement from a sample allows us to obtain what is called the **bootstrap** distribution for our statistic. The bootstrap distribution is effectively an estimate for the sampling distribution that is obtained by way of simulation.  We can plot the bootstrap distribution for our running example:
 ```{r}
 boot_res %>% gf_histogram(~boot_est) %>%
   gf_vline(xintercept = rho_est)
 ```
+The vertical black line is the value of our estimate from the original data. 
 
+
+As we mentioned before, the standard deviation of the sampling distribution for a statistic is called the standard error. Since the bootstrap distribution estimates the smapling distribution, the standard deviation of the bootstrap distribution (the so-called **bootstrap standard error**) provides us with an estimate for the standard error of our estimate:  
 ```{r}
 sd(boot_res$boot_est)
 ```
 
+There are two ways common ways to use the bootstrap to estimate confidence intervals. One way is to use the bootstrap standard error because confidence intervals are usually obtained by a formula such as
 
-```{r}
-quantile(boot_res$boot_est,c(0.025,0.975))
-```
+$CI = (\text{estimate}-\text{standard error}\times \text{some factor},\text{estimate}+\text{standard error}\times \text{some factor})$
 
+where the factor is chosen depending on the **confidence level** (*e.g.*, 95%). If a parameter comes from a normal distribution, then the scale factor corresponding to a 95% confidence level is about 2, therefore our confidence interval estimate using the bootstrap is: 
 ```{r}
 rho_est + 2*c(-1,1)*sd(boot_res$boot_est)
 ```
 
 
+Another way to estimate confidence intervals using the bootstrap is to obtain a **bootstrap percentile interval** from the bootstrap distribution. For example, a 95% bootstrap percentile in our example would be obtained with:
+```{r}
+quantile(boot_res$boot_est,c(0.025,0.975))
+```
+Notice that this is reasonably close to what we obtained before.  
+
+Using classical theory, a 95% confidence interval for our example parameter is obtained by:
 ```{r}
 prop.test(n_heads,n)$conf.int
 ```
+Again, this is pretty close to what we obtained using the bootstrap technique. 
 
 
 
