@@ -24,7 +24,7 @@ $H_{0}: \mu_{M} - \mu_{F} = 0$
 
 versus the alternative hypothesis
 
-$H_{A}: \mu_{F} - \mu_{F} > 0$
+$H_{A}: \mu_{M} - \mu_{F} > 0$
 
 This is an example of a one-sided test. Another option would be to conduct a two-sided test which takes the form
 
