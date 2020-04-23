@@ -12,13 +12,13 @@ library(fastR2)
 
 This notebook will introduce the second important procedure in statistical inference, estimation. Our goal is to introduce the notion of **confidence intervals**. For us, hypothesis testing and estimation, especially confidence intervals will be the most important statistical concepts. 
 
-Eventually we will learn about the bootstrap method for estimating the confidence interval of a parameter or test statistic. The bootstrap is a computational method that is absolutely essential in data science and machine learning. However, before we begin to discuss the bootstrap in detail it is very helpful to get a feel for what is known as point estimation.  We will do this by way of a simple example. 
+Eventually we will learn about the **bootstrap** method for estimating the confidence interval of a parameter or test statistic. The bootstrap is a computational method that is absolutely essential in data science and machine learning. However, before we begin to discuss the bootstrap in detail, it is very helpful to get a feel for what is known as point estimation.  We will do this by way of a simple example. 
 
 # Point Estimation Example
 
-Consider the following problem. Someone gives us a coin. If we toss the coin, we will land heads with some probability $\rho$. However, we do not necessarily know *a priori* what the numerical value of $\rho$ is. In this case, we call $\rho$ a **population** parameter because it is fixed but unknown. What we will attempt to do is to use data to estimate a value for $\rho$ in the hopes that our estimate will be reasonably accurate. Of course it will be necessary to assess the accuracy of our estimate. 
+Consider the following problem. Someone gives us a coin. If we toss the coin, we will land heads with some probability $\rho$. However, we do not necessarily know *a priori* what the numerical value of $\rho$ is. In this case, we call $\rho$ a **population** parameter because it is **fixed but unknown**. What we will attempt to do is to use data to estimate a value for $\rho$ in the hopes that our estimate will be reasonably accurate. Of course it will be necessary to assess the accuracy of our estimate. 
 
-How can we estimate $\rho$ from data? If we toss the coin say $n$ times then, as we have seen, a binomial distribution with probability of success equal to $\rho$ provides a good model for the probability that we obtain $n_{\text{heads}}$. Perhaps our understanding of this distribution can help us to estimate $\rho$. This is indeed the case. It should be fairly intuitive that an reasonable estimate, call the estimate $\hat{\rho}$ for $\rho$ is
+How can we estimate $\rho$ from data? If we toss the coin say $n$ times then, as we have seen, a binomial distribution with probability of success equal to $\rho$ provides a good model for the probability that we obtain $n_{\text{heads}}$. Perhaps our understanding of this distribution can help us to estimate $\rho$. This is indeed the case. It should be fairly intuitive that an reasonable estimate, denoted by $\hat{\rho}$, for $\rho$ is
 
 $\hat{\rho} = \frac{n_{\text{heads}}}{n}$
 
@@ -26,13 +26,13 @@ This result can be derived mathematically using something called maximum likelih
 
 $\hat{\rho} = \frac{n_{\text{heads}}}{n}$.
 
-Just to emphasize this, a radnom variable that provides a means to estimate a population parameter is called an estimator and a specific value for an estimator obtained from sample data is called an **estimate**, or a point estimate because it will be a single number. 
+Just to emphasize this, a random variable that provides a means (like a formula) to estimate a population parameter is called an estimator and a specific value for an estimator obtained from sample data is called an **estimate**, or a point estimate because it will be a single number. 
 
 Let's exemplify all of this by way of simulation. 
 
 ## Estimation Simulation
 
-Let's fix a value for the population parameter $\rho$. Note that in reality we will not know the value of a population parameter. 
+Let's fix a value for the population parameter $\rho$. Note that in reality we will not typically know the value of a population parameter. 
 ```{r}
 # population parameter value fixed for simulation purposes
 rho <- 0.65
@@ -77,14 +77,30 @@ This shoud provide some assurance that, at least with reasonably high probabilit
 
 ## Intro to Confidence Intervals
 
+
+Let's begin by simulating some more sample data and compute the corresponding estimate. 
 ```{r}
 coin_toss_sim <- rbinom(n,1,rho)
 n_heads <- sum(coin_toss_sim)
 (rho_est <- n_heads/n)
-(int_est <- prop.test(n_heads,n)$conf.int)
 ```
 
+In R, we can use a built-in function to estimate the 95% confidence interval for our estimate as follows:
+```{r}
+(int_est <- prop.test(n_heads,n)$conf.int)
+```
+The details for how this is obtained is not important right now. The point is to get an intuitive sense for what a confidence interval is. 
 
+
+What we will do is repeat the process of
+
+1) obtaining sample data
+
+2) computing an estimate
+
+3) obtaining the corresponding 95% confidence interval:
+
+The following code does this:
 ```{r}
 est_ci_sim <- function(rho=0.65,n=12){
   samp_dat <- sum(rbinom(n,1,rho))
@@ -92,18 +108,17 @@ est_ci_sim <- function(rho=0.65,n=12){
   int_est <- prop.test(samp_dat,n)$conf.int
   return(c(est_val=prop_est,lower=int_est[1],upper=int_est[2]))
 }
-```
 
-```{r}
 N <- 100
 est_ci_res <- do(N)*c(est_ci_sim())
 ```
 
-
+Let's look at what we have obtained:
 ```{r}
 head(est_ci_res)
 ```
 
+A plot is very helpful:
 ```{r}
 est_ci_res %>% ggplot(aes(x=seq(1,nrow(est_ci_res)),y=est_val)) +
   geom_point() +
@@ -112,8 +127,15 @@ est_ci_res %>% ggplot(aes(x=seq(1,nrow(est_ci_res)),y=est_val)) +
   geom_hline(yintercept = rho,color="red",linetype="dashed",size=1) + 
   labs(x="",y="")
 ```
+This shows 
 
+1) the true population value (dashed red horizontal line)
 
+2) 100 point estimate values (black dots)
+
+3) the corresponding 95% confidence interval for each point estimate (vertical black lines)
+
+Notice that the true population parameter falls within all but just a few of the confidence intervals (vertical black lines). In fact, we can compute the percentage of confidence intervals that contain the population parameter:
 ```{r}
 k <- 0
 for (i in 1:nrow(est_ci_res)){
@@ -124,24 +146,31 @@ for (i in 1:nrow(est_ci_res)){
 k/nrow(est_ci_res)
 ```
 
+This should be close to 95%. 
+
+To simultaneously develop greater understanding for and to learn a method to compute (approximate) confidence intervals, we will now introduce the bootstrap method. 
+
 # Bootstrap for Confidence Intervals
 
+We begin by writing a function in R that will input some sample data, sample **with replacement** from the data, and compute the resulting point estimate for our parameter of interst:
 ```{r}
 boot_prop <- function(coin_data){
   return(sum(sample(coin_data,replace = T))/length(coin_data))
 }
 ```
 
+Here's a an example call of this function:
 ```{r}
 boot_prop(coin_toss_sim)
 ```
 
-
+Now what we will do is call this function repeatedly some large number of times:
 ```{r}
 N <- 10^5
 boot_res <- do(N)*c(boot_est = boot_prop(coin_toss_sim))
 ```
 
+The reason why we do this is because resapling with replacement from a sample is effectively estimating the sampling distribution by way of simulation.  
 
 ```{r}
 boot_res %>% gf_histogram(~boot_est) %>%
