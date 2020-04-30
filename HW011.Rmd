@@ -1,0 +1,82 @@
+---
+title: "Homework 11"
+author: "Your Name"
+output:
+  html_notebook: default
+  pdf_document: default
+---
+
+```{r,warning=FALSE,message=FALSE}
+library(resampledata)
+library(fastR2)
+```
+
+## Problem 1
+
+Consider a population that has a normal distribution with mean $\mu = 36$ and standard deviation $\sigma = 8$ (so the variance is $\sigma^2 = 64$). 
+
+The following code draws a random sample of size $n=200$ from this population:
+```{r}
+samp_data <- rnorm(200,mean=36,sd=8)
+```
+
+For a normal distribution, the sample mean
+
+$\bar{X} = \frac{X_{1} + X_{2} + \cdots + X_{n}}{n}$
+
+is an estimator for the population mean. Thus, 
+```{r}
+(obs_est <- mean(samp_data))
+```
+
+provides an estimate for the population mean. 
+
+The following code uses 5000 resamples from the sample data to compute the bootstrap distribution for the sample, and returns the bootstrap mean and standard error.
+
+```{r}
+N <- 5000
+boot_dist <- do(N) * c(boot_stat=mean(sample(samp_data,replace = TRUE)))
+(mean(boot_dist$boot_stat))
+(sd(boot_dist$boot_stat))
+```
+
+a) Interpret the results of the previous code.  
+
+b) Plot a histogram of the bootstrap distribution and describe its characterisitcs.
+
+c) Use the bootstrap distribution to obtain an approximate 95% confidence interval for the estimate of the population mean. 
+
+## Problem 2
+
+Modify the code from problem 1 in order to take a sample of size $n=150$ from a population that has a normal distribution with mean $\mu = 16$ and standard deviation $\sigma = 6$. Then, 
+
+a) use 10,000 resamples to obtain the bootstrap distribution for your sample,
+
+b) compute the bootstrap mean and standard error, and
+
+c) repeat parts a, b, and c from problem 1 for the sample data you generated for problem 2. 
+
+## Problem 3
+
+Consider the Bangladesh data set from the resampledata package:
+```{r}
+head(Bangladesh)
+```
+This data records levels of three chemicals found in the groundwater of Bangladesh. In this problem we will use the bootstrap to understand the distribution of levels of arsenic (measured in parts per billion (ppb)) in the groundwater. We can extract the vector of arsenic levels as follows:
+```{r}
+Arsenic <- Bangladesh$Arsenic
+```
+The US EPA sets an arsenic maximum contaminant level for public water supplies at 10ppb. 
+
+a) Compute the mean and standard deviation for the aresnic level recorded in the Arsenic data. 
+
+b) Use 10,000 resamples to compute the bootstrap distribution for the sample mean of the arsenic data. 
+
+c) Plot a histogram of the bootstrap distribution. 
+
+d) Use the boostrap to find and interpret an approximate 95% confidence interval for the sample mean of the arsenic data. 
+
+
+
+
+
