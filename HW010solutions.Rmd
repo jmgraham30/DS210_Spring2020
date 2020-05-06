@@ -1,0 +1,184 @@
+---
+title: "Homework 10 Solutions"
+author: "JMG"
+date: '`r Sys.Date()`'
+output:
+  html_notebook: default
+  pdf_document: default
+---
+
+```{r,warning=FALSE,message=FALSE}
+library(resampledata)
+library(fastR2)
+```
+
+## Problem 1
+
+Suppose you conduct an experiment and inject a drug into three mice. Their times for running a maze are 8, 10, and 15 s; the times for two control mice are 5 and 9 s. 
+
+a) Compute the difference in mean times between the treatment group and the control group. 
+
+### Solution
+
+$\text{mean group 1} = \frac{8+10+15}{3} = 11$
+
+$\text{mean group 2} = \frac{5+9}{2} = 7$
+
+$\text{difference in means} = 11 - 7 = 4$
+
+b) Write out all possible permutations of these times to the two groups and calculate the difference in means for each permutation. 
+
+### Solution
+
+We need to permute $\{8,10,15,5,9\}$, divide into one group of three and one group of two, and compute the difference in means between the two groups. Since there are $n=5$ total elements there are $n! = 120$ permutations but not all of these lead to distinct difference in means. Thus, we only list ones that do lead to distinct differences in means. 
+
+1) `r (8+10+15)/3 - (5+9)/2`
+
+2) `r (5+10+15)/3 - (8+9)/2`
+
+3) `r (9+10+15)/3 - (5+8)/2`
+
+4) `r (8+5+15)/3 - (10+9)/2`
+
+5) `r (8+9+15)/3 - (5+10)/2`
+
+6) `r (8+10+8)/3 - (15+9)/2`
+
+7) `r (8+10+9)/3 - (5+15)/2`
+
+8) `r (5+9+15)/3 - (8+10)/2`
+
+9) `r (8+5+9)/3 - (10+15)/2`
+
+10) `r (5+10+9)/3 - (8+15)/2`
+
+For later, we store these difference in means in a vector:
+```{r}
+diff_means_one <- c(4,1.5,4.83,-0.17,3.17,-3.33,-1,0.67,-5.17,-3.5)
+```
+
+
+c) What proportion of the differences are as large or larger than the observed difference in mean times? 
+
+### Solution
+
+```{r}
+sum(diff_means_one >= 4)/length(diff_means_one)
+```
+
+d) For each permutation, calculate the mean of the treatment group only. What proportion of these means are as large or larger than the observed mean of the treatment group? 
+
+### Solution
+
+1) `r (8+10+15)/3`
+
+2) `r (5+10+15)/3`
+
+3) `r (9+10+15)/3`
+
+4) `r (8+5+15)/3`
+
+5) `r (8+9+15)/3`
+
+6) `r (8+10+8)/3`
+
+7) `r (8+10+9)/3`
+
+8) `r (5+9+15)/3`
+
+9) `r (8+5+9)/3`
+
+10) `r (5+10+9)/3`
+
+We store these means in a vector and copmute the proportion as large or larger than the observed:
+```{r}
+treat_means_one <- c(11,10,11.33,9.33,10.67,8.67,9,9.67,7.33,8)
+sum(treat_means_one >= 11)/length(treat_means_one)
+```
+
+## Problem 2
+
+In a hypothesis test comparing two population means, $H_{0}: \mu_{1} = \mu_{2}$ versus $H_{A}: \mu_{1} > \mu_{2}$:
+
+a) Which $p$-value 0.03 or 0.006 provides stronger evidence for the alternative hypothesis? 
+
+### Solution
+
+Recall that a smaller p-value provides stronger evidence for rejecting the null-hypothesis thus 0.006 provides stronger evidence for the alternative hypothesis. 
+
+b) Which $p$-value, 0.095 or 0.04 provides stronger evidence that chance alone might account for the observed result? 
+
+### Solution
+
+Recall that the null-hypothesis corresponds to the absence of any true effect and a larger p-value provides lack of evidence for rejecting the null hypothesis. Therefore, 0.095 provides stronger evidence that chance alone might account for the observed result. 
+
+
+## Problem 3
+
+Consider the flight delays data from the resample package, the first few rows of which are shown below
+```{r}
+head(FlightDelays)
+```
+
+
+This data records flight information for two airlines: United (UA), and American (AA). We might be intersted to see if one airline has flights that are consistently delayed more often than the other. To begin to study this, we can plot the delay times for each airline:
+```{r}
+FlightDelays %>% gf_boxplot(Delay~Carrier)
+```
+
+
+
+Note the number of times each airline appears in the data:
+```{r}
+table(FlightDelays$Carrier)
+```
+
+
+
+Alternatively, we might be interested to see if there is a difference in delay time between flights in the month of May and flights in the month of June. Again, a plot may be helpful:
+```{r}
+FlightDelays %>% gf_boxplot(Delay~Month)
+```
+
+
+Note the number of times each month appears in the data:
+```{r}
+table(FlightDelays$Month)
+```
+
+
+
+a) Conduct a two-sided permutation test to see if the difference in mean delay times between the two carriers are statistically significant. 
+
+### Solution
+
+b) Conduct a two-sided permutation test to see if the difference in mean delay times between the two months is statistically significant.
+
+### Solution
+
+## Problem 4
+
+
+One might often test the hypothesis in problem 3a using a method implemented with the following code:
+```{r}
+t.test(Delay~Carrier,data=FlightDelays)
+```
+
+
+
+Notice that this returns a $p$-value:
+```{r}
+t.test(Delay~Carrier,data=FlightDelays)$p.value
+```
+
+
+a) How do the result returned by using the t.test function above compare with what you obtained using a permutation test for 3a?
+
+### Solution
+
+b) Modify the above code to apply the t.test to test the hypothesis from problem 3b. Compare the results with what you obtained using a permutation test as done in problem 3b.  
+
+### Solution
+
+
+
