@@ -152,9 +152,84 @@ a) Conduct a two-sided permutation test to see if the difference in mean delay t
 
 ### Solution
 
+First, compute the observed difference in means and place all of the delays into a single vector:
+```{r}
+UA_delays <- FlightDelays %>% filter(Carrier == "UA") %>%
+  select(Delay) %>% unlist()
+Num_UA <- length(UA_delays)
+AA_delays <- FlightDelays %>% filter(Carrier == "AA") %>%
+  select(Delay) %>% unlist()
+Num_AA <- length(AA_delays)
+All_delays <- c(UA_delays,AA_delays)
+(ob_diff_mean <- mean(UA_delays) - mean(AA_delays))
+```
+
+Now carry out the permutations:
+```{r}
+N <- 10^5 - 1
+perm_mean_diffs <- numeric(N)
+for (i in 1:N){
+  perm_data <- sample(All_delays)
+  perm_UA <- perm_data[1:Num_UA]
+  perm_AA <- perm_data[-(1:Num_AA)]
+  perm_mean_diffs[i] <- mean(perm_UA) - mean(perm_AA)
+}
+```
+
+Let's plot the result:
+```{r}
+gf_histogram(~perm_mean_diffs) %>% gf_vline(xintercept = ob_diff_mean)
+```
+
+
+Now compute the two-sided p-value:
+```{r}
+p_less <- (sum((perm_mean_diffs <= ob_diff_mean)) + 1)/(N + 1)
+p_greater <- (sum((perm_mean_diffs >= ob_diff_mean)) + 1)/(N + 1)
+(p_value_3a <- 2*min(p_less,p_greater))
+```
+
 b) Conduct a two-sided permutation test to see if the difference in mean delay times between the two months is statistically significant.
 
 ### Solution
+
+First, compute the observed difference in means and place all of the delays into a single vector:
+```{r}
+May_delays <- FlightDelays %>% filter(Month == "May") %>%
+  select(Delay) %>% unlist()
+Num_May <- length(May_delays)
+June_delays <- FlightDelays %>% filter(Month == "June") %>%
+  select(Delay) %>% unlist()
+Num_June <- length(June_delays)
+All_delays <- c(May_delays,June_delays)
+(ob_diff_mean <- mean(May_delays) - mean(June_delays))
+```
+
+Now carry out the permutations:
+```{r}
+N <- 10^5 - 1
+perm_mean_diffs <- numeric(N)
+for (i in 1:N){
+  perm_data <- sample(All_delays)
+  perm_May <- perm_data[1:Num_May]
+  perm_June <- perm_data[-(1:Num_June)]
+  perm_mean_diffs[i] <- mean(perm_May) - mean(perm_June)
+}
+```
+
+Let's plot the result:
+```{r}
+gf_histogram(~perm_mean_diffs) %>% gf_vline(xintercept = ob_diff_mean)
+```
+
+Now compute the two-sided p-value:
+```{r}
+p_less <- (sum((perm_mean_diffs <= ob_diff_mean)) + 1)/(N + 1)
+p_greater <- (sum((perm_mean_diffs >= ob_diff_mean)) + 1)/(N + 1)
+(p_value_3b <- 2*min(p_less,p_greater))
+```
+
+
 
 ## Problem 4
 
@@ -176,9 +251,21 @@ a) How do the result returned by using the t.test function above compare with wh
 
 ### Solution
 
+The p-value obtained in 3a is `r p_value_3a` which is a little larger than that obtained above but both are really small and strongly suggest that the data provides evidence for rejecting the null hypothesis.  
+
 b) Modify the above code to apply the t.test to test the hypothesis from problem 3b. Compare the results with what you obtained using a permutation test as done in problem 3b.  
 
 ### Solution
+
+We can obtain a $p$-value as:
+```{r}
+t.test(Delay~Month,data=FlightDelays)$p.value
+```
+
+The p-value obtained in 3b is `r p_value_3b` which is a little larger than that obtained above but both are really small and strongly suggest that the data provides evidence for rejecting the null hypothesis. 
+
+
+
 
 
 
